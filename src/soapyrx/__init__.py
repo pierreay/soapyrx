@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-"""My package initialization file."""
-
-# Import a package module.
-from soapyrx import mylib
-
-# Initialize the package.
-print("Call mylib.hello_init() from '__init__.py'...")
-mylib.hello_init()
+# Test to import our modules.
+from soapyrx import lib as soapyrx_lib
+from soapyrx import cli as soapyrx_cli

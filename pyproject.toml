@@ -19,7 +19,7 @@ dependencies = [
 [project.scripts]
 # Will create a "soapyrx" Bash script targeting the "soapyrx" package, "mymod"
 # module, "main()" function.
-soapyrx = "soapyrx.mymod:main"
+soapyrx = "soapyrx.cli:cli"
 
 # Package layout.
 # NOTE: Disabling the following options will enable the automatic package
