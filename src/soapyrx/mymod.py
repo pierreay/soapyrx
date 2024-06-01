@@ -3,7 +3,7 @@
 """My module."""
 
 # Import a package module.
-from mypkg import mylib
+from soapyrx import mylib
 
 # Main function of our package.
 # NOTE: The "main" name is only a convention here.

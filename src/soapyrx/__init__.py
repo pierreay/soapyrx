@@ -3,7 +3,7 @@
 """My package initialization file."""
 
 # Import a package module.
-from mypkg import mylib
+from soapyrx import mylib
 
 # Initialize the package.
 print("Call mylib.hello_init() from '__init__.py'...")

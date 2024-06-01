@@ -5,20 +5,21 @@ build-backend = "setuptools.build_meta"
 
 # Project metadata configuration.
 [project]
-name = "mypkg"
+name = "soapyrx"
 version = "0.0.1"
-# dependencies = [
-#     "click",
-#     "colorlog",
-#     "numpy",
-#     "matplotlib"
-# ]
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "click",
+    "colorlog",
+]
 
 # Scripts configuration.
 [project.scripts]
-# Will create a "mypkg-cli" Bash script targeting the "mypkg" package, "mymod"
+# Will create a "soapyrx" Bash script targeting the "soapyrx" package, "mymod"
 # module, "main()" function.
-mypkg-cli = "mypkg.mymod:main"
+soapyrx = "soapyrx.mymod:main"
 
 # Package layout.
 # NOTE: Disabling the following options will enable the automatic package
