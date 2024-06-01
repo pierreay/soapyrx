@@ -37,7 +37,7 @@ def load_raw_trace(dir, rad_idx, rec_idx, log=False):
     if path.exists(fp):
         l.LOGGER.info("Load RAW trace from {}".format(fp))
         try:
-            trace = MySoapySDR.numpy_load(fp)
+            trace = np.load(fp)
         except Exception as e:
             print(e)
     else:
@@ -152,18 +152,17 @@ def plot(samp_rate, amplitude, phase, nf_id, ff_id, fast):
 @cli.command()
 @click.argument("samp_rate", type=float)
 @click.argument("file", type=click.Path())
-@click.option("--npy/--no-npy", type=bool, default="False", help="If set to true, assume FILE is a regular Numpy array instead of a custom dtype one produced by soapysdr.py")
 @click.option("--cut/--no-cut", "cut_flag", default=False, help="Cut the recorded signal.")
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file without custom dtype.")
+@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
 @click.option("--freq", type=float, default=None, help="Set the center frequency for the spectrogram.")
-def plot_file(samp_rate, file, npy, cut_flag, save, save_plot, freq):
+def plot_file(samp_rate, file, cut_flag, save, save_plot, freq):
     """Plot a trace from FILE.
 
     SAMP_RATE is the sampling rate used for the recording.
 
     """
-    sig = soapysdr_lib.MySoapySDR.numpy_load(file) if npy is False else np.load(file)
+    sig = np.load(file)
     if cut_flag is True:
         pltshrk = libplot.PlotShrink(sig)
         pltshrk.plot()
@@ -178,7 +177,7 @@ def plot_file(samp_rate, file, npy, cut_flag, save, save_plot, freq):
 @click.argument("freq", type=float)
 @click.argument("samp_rate", type=float)
 @click.option("--duration", type=float, default=0.5, help="Duration of the recording.")
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file without custom dtype.")
+@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--norm/--no-norm", default=False, help="Normalize the recording before saving.")
 @click.option("--amplitude/--no-amplitude", default=False, help="Extract only the amplitude of the signal.")
 @click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
@@ -224,7 +223,7 @@ def record(freq, samp_rate, duration, save, norm, amplitude, phase, plot_flag, c
         np.save(save, sig)
 
 @cli.command()
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file without custom dtype.")
+@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--norm/--no-norm", default=False, help="Normalize the recording before saving.")
 @click.option("--amplitude/--no-amplitude", default=False, help="Extract only the amplitude of the signal.")
 @click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
@@ -263,12 +262,5 @@ def debug():
     sig = load_raw_trace(DIR, 0, 0, log=True)
     from IPython import embed; embed()
         
-@cli.command()
-@click.argument("file")
-def to_numpy(file):
-    """Store a signal recorded in our custom dtype to Numpy format in FILE."""
-    np.save(file, load_raw_trace(DIR, 0, 0, log=True))
-    l.LOGGER.info("Signal saved in {}".format(file))
-
 if __name__ == "__main__":
     cli()

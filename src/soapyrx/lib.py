@@ -225,15 +225,6 @@ class MySoapySDR():
     """
     # * Constants.
     
-    # Custom dtype.
-    # It is used to match the CS16 type of SoapySDR, allowing to save disk
-    # space but requires conversion happening in this module, since Numpy can
-    # only work with np.complex64 using float32.
-    DTYPE = np.dtype([('real', np.int16), ('imag', np.int16)])
-    # XXX: May be simpler to use np.float16?
-    # To not waste space but get ride of int <-> float casting/rescaling? Since
-    # we need float anyway for signal processing...
-
     # Default length (power of 2) of RX temporary buffer. This length
     # corresponds to the number of samples.
     RX_BUFF_LEN_EXP = 20
@@ -257,58 +248,6 @@ class MySoapySDR():
         self.close()
 
     # * Static functions.
-
-    @staticmethod
-    def numpy_save(file, arr):
-        """Stub for numpy.save handling our custom dtype.
-
-        Save to disk the trace stored in ARR using our custom dtype. ARR.dtype
-        can be np.complex64 (will be converted) or MySoapySDR.DTYPE (will be
-        saved as it).
-
-        """
-        assert(arr.dtype == np.complex64 or arr.dtype == MySoapySDR.DTYPE)
-        if arr.dtype == np.complex64:
-            arr = MySoapySDR.complex64_to_dtype(arr)
-        arr.tofile(file)
-
-    @staticmethod
-    def numpy_load(file):
-        """Stub for numpy.load handling our custom dtype.
-
-        The loaded FILE has to be in the MySoapySDR.DTYPE format, which will be
-        converted into np.complex64 for processing.
-
-        """
-        return MySoapySDR.dtype_to_complex64(np.fromfile(file, dtype=MySoapySDR.DTYPE))
-
-    @staticmethod
-    def dtype_to_complex64(arr):
-        """Convert an array from our custom DTYPE to a standard np.complex64
-        (composed of 2 np.float32)."""
-        assert(arr.dtype == MySoapySDR.DTYPE)
-        # Don't need to check any boundaries here since casting from np.int16
-        # to np.float32 is safe.
-        return arr.view(np.int16).astype(np.float32).view(np.complex64)
-
-    @staticmethod
-    def complex64_to_dtype(arr):
-        """Convert an array from a standard np.complex64 (composed of 2
-        np.float32) to our custom DTYPE."""
-        assert(arr.dtype == np.complex64)
-        # Check that the signal ready to convert is not normalized, otherwise,
-        # it will give a zeroed signal. It should not happened with the
-        # hardened complex.p2r() function.
-        # assert not analyze.is_normalized(complex.get_amplitude(arr)), "tried to save normalized signal, it will give a zeroed signal"
-        # assert not analyze.is_normalized(complex.get_phase(arr)), "tried to save normalized signal, it will give a zeroed signal"
-        # Check that no value contained in arr is superior to maximum or
-        # inferior to minimum of np.int16 (-2^15 or +2^15), since casting from
-        # np.float32 to np.int16 is not safe.
-        assert(arr[arr.real < np.iinfo(np.int16).min].shape == (0,))
-        assert(arr[arr.real > np.iinfo(np.int16).max].shape == (0,))
-        assert(arr[arr.imag < np.iinfo(np.int16).min].shape == (0,))
-        assert(arr[arr.imag > np.iinfo(np.int16).max].shape == (0,))
-        return arr.view(np.float32).astype(np.int16).view(MySoapySDR.DTYPE)
 
     def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, dir = "/tmp", gain = 76):
         l.LOGGER.debug("MySoapySDR.__init__(fs={},freq={},idx={},enabled={},duration={},dir={},gain={})".format(fs, freq, idx, enabled, duration, dir, gain))
@@ -481,7 +420,7 @@ class MySoapySDR():
             dir = path.expanduser(dir)
             l.LOGGER.info("save recording of radio #{} into directory {}".format(self.idx, dir))
             assert(path.exists(dir))
-            MySoapySDR.numpy_save(path.join(dir, "raw_{}_{}.npy".format(self.idx, 0)), self.rx_signal)
+            np.save(path.join(dir, "raw_{}_{}.npy".format(self.idx, 0)), self.rx_signal)
             # Re-initialize for further recordings if requested [default].
             if reinit is True:
                 self.reinit()
@@ -510,7 +449,7 @@ class MySoapySDR():
         The returned signal will be I/Q represented using np.complex64 numbers.
 
         """
-        sig = MySoapySDR.dtype_to_complex64(self.rx_signal)
+        sig = self.rx_signal
         assert sig.dtype == np.complex64, "Signal should be complex numbers!"
         return sig
 
