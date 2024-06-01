@@ -3,7 +3,6 @@ from enum import Enum
 
 import numpy as np
 from scipy import signal
-from tqdm import tqdm
 
 from soapyrx import log as l
 
