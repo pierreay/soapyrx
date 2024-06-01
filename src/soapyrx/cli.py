@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from os import path
 import time
+from os import path
 try:
     import tomllib
 # NOTE: For Python <= 3.11:
