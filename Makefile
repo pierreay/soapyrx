@@ -11,15 +11,15 @@ PKG_DIR=src
 
 # * Recipes
 
-# ** Installing/Uninstalling to user using PipX
+# ** Installing/Uninstalling to user using Pip
 
 # Install the project user-wide using dynamic installation method (symlinking files).
 install:
-	pipx install --editable .
+	pip install --break-system-packages --user --editable .
 
 # Uninstall the project user-wide.
 uninstall: clean
-	pipx uninstall $(PKG_NAME)
+	pip uninstall --break-system-packages $(PKG_NAME)
 
 # ** Cleaning
 
