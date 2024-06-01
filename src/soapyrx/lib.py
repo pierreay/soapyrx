@@ -317,7 +317,7 @@ class MySoapySDR():
         assert rx_buff_len_exp <= self.RX_BUFF_LEN_EXP_UB, "Bad RX buffer exponent value!"
         assert rx_buff_len_exp >= self.RX_BUFF_LEN_EXP_LB, "Bad RX buffer exponent value!"
         l.LOGGER.debug("Allocate 2^{} dtype-elements in memory for RX buffer...".format(rx_buff_len_exp))
-        self.rx_buff = np.array([0] * pow(2, rx_buff_len_exp), MySoapySDR.DTYPE)
+        self.rx_buff = np.array([0] * pow(2, rx_buff_len_exp), np.complex64)
 
     def _rx_buff_deinit(self):
         """Deinitialize the RX buffer.
@@ -351,7 +351,7 @@ class MySoapySDR():
             # - "CS16" - complex int16   (4 bytes per element)
             # From SoapyUHD/SoapyUHDDevice.cpp/getNativeStreamFormat():
             # UHD and the hardware use "CS16" format in the underlying transport layer.
-            self.rx_stream = self.sdr.setupStream(SoapySDR.SOAPY_SDR_RX, SoapySDR.SOAPY_SDR_CS16)
+            self.rx_stream = self.sdr.setupStream(SoapySDR.SOAPY_SDR_RX, SoapySDR.SOAPY_SDR_CF32)
             self.sdr.activateStream(self.rx_stream)
             # Initialize for first recordings.
             self.reinit()
@@ -370,7 +370,7 @@ class MySoapySDR():
         if self.enabled:
             # Initialize the buffer (0-length) that will contains the final
             # recorded signal from this function.
-            self.rx_signal_candidate = np.array([0], MySoapySDR.DTYPE)
+            self.rx_signal_candidate = np.array([0], np.complex64)
             # Number of samples requested to read.
             samples = int(duration * self.fs)
             # Number of samples that can fit in the RX buffer.
@@ -408,7 +408,7 @@ class MySoapySDR():
     def save(self, dir = None, reinit = True):
         """Save the last accepted recording on disk.
 
-        The saved .npy file will use the MySoapySDR.DTYPE data type.
+        The saved .npy file will use the np.complex64 data type.
 
         :param reinit: If set to False, do not re-initialize the radio for a
         next recording. MySoapySDR.reinit() should be called manually later.
@@ -433,7 +433,7 @@ class MySoapySDR():
         # Delete the signals since buffers can be large.
         if self.rx_signal is not None:
             del self.rx_signal
-        self.rx_signal = np.array([0], MySoapySDR.DTYPE)
+        self.rx_signal = np.array([0], np.complex64)
         if self.rx_signal_candidate is not None:
             del self.rx_signal_candidate
         self.rx_signal_candidate = None
