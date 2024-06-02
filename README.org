@@ -2,11 +2,18 @@
 
 An SDR receiver built on [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR]].
 
+The scope of this tool is to handle signal acquisition from an SDR. Using
+SoapySDR as backend, it supports every SDR supported by the latter -- as long
+as the corresponding module is installed. SoapyRX can record from multiple SDRs
+in parallel, display basic signal visualization, as well as perform
+single-signal operations (/e.g./, conversion, cut). It not meant to process
+datasets (/e.g./, alignment, normalization).
+
 * Installation
 
 1. Install [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR]] using distribution packages or sources.
 
-2. Install SoapyRX using using [[https://pypi.org/project/pip/][Pip]]:
+2. Clone SoapyRX repository and install it using using [[https://pypi.org/project/pip/][Pip]]:
    #+begin_src bash :eval never
    git clone https://github.com/pierreay/soapyrx.git
    cd soapyrx && pip install --user .
