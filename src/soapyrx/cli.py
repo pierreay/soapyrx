@@ -50,7 +50,7 @@ def load_raw_trace(dir, rad_idx, rec_idx, log=False):
 @click.option("--config", type=click.Path(), default="config.toml", help="Path of the TOML configuration file.")
 @click.option("--dir", type=click.Path(), default="/tmp", help="Temporary directory used to hold raw recording.")
 @click.option("--log/--no-log", default=True, help="Enable or disable logging.")
-@click.option("--loglevel", default="DEBUG", help="Set the logging level.")
+@click.option("--loglevel", default="INFO", help="Set the logging level.")
 def cli(config, dir, log, loglevel):
     """Signal recording utility.
 
