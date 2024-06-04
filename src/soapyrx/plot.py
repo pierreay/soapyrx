@@ -145,7 +145,9 @@ class SignalQuadPlot():
     """Quad plot of a signal.
 
     Plot the amplitude and the phase of a signal in both time and frequency
-    domains. The phase is only plotted if the signal is complex.
+    domains. The phase is only plotted if the signal is complex. If the
+    sampling rate is specified, synchronized time-domain and frequency-domain
+    will be enabled.
 
     """
     # Signal variables.
