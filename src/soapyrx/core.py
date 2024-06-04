@@ -257,7 +257,7 @@ class SoapyRadio():
 
     # * Static functions.
 
-    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, dir = "/tmp", gain = 76):
+    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, dir = "/tmp", gain = 0):
         l.LOGGER.debug("SoapyRadio.__init__(fs={},freq={},idx={},enabled={},duration={},dir={},gain={})".format(fs, freq, idx, enabled, duration, dir, gain))
         assert gain >= 0, "Gain should be positive!"
         # NOTE: Automatically convert floats to integers (allows using scentific notation, e.g. e6 or e9).
