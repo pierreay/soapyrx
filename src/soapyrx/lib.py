@@ -50,10 +50,6 @@ class MySoapySDRs():
         # Proceed to the registration.
         self.sdrs.append(sdr)
         self.registered_idx.append(sdr.idx)
-        # Temporary hack to be compatible with nrf52_whad.py who access
-        # self.radio.fs variable. This imply to have the same sampling rate
-        # accross two SDRs.
-        self.fs = sdr.fs
 
     def open(self):
         l.LOGGER.debug("MySoapySDRs.open()")
