@@ -153,25 +153,7 @@ def server_stop():
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 def client(save, amplitude, phase, plot_flag):
     """Record a signal from a radio server."""
-    rad_id=0
-    rad = core.SoapyClient()
-    # Record and save the signal.
-    rad.record()
-    rad.accept()
-    rad.save()
-    # NOTE: SoapyClient.save() is not synchronous, then wait enough for signal to be saved.
-    time.sleep(1)
-    # NOTE: Following code duplicated from `record()'.
-    # Save the radio capture outside the radio for an additional save or plot.
-    # NOTE: Not especially efficient since we use the disk as buffer here,
-    # but the SDR client cannot receive data from the SDR server currently.
-    sig = load_raw_trace(dir=DIR, rad_idx=rad_id, rec_idx=0, log=False)
-    # Plot the signal as requested.
-    if plot_flag is True:
-        plotters.SignalQuadPlot(sig).plot()
-    # Save the signal as requested.
-    if save != "":
-         np.save(save, sig)
+    helpers.client(save, amplitude, phase, plot_flag)
     
 if __name__ == "__main__":
     cli()
