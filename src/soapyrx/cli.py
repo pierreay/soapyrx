@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# * Importation
+
 # Standard import.
 import time
 from os import path
@@ -30,7 +32,7 @@ from soapyrx import analyze
 CONFIG = None
 DIR = None
 
-# * Functions from old project
+# * Functions
 
 def load_raw_trace(dir, rad_idx, rec_idx, log=False):
     trace = None

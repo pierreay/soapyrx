@@ -1,16 +1,28 @@
+"""Plotting functions."""
+
+# * Importation
+
+# Standard import.
 from os import path
+
+# External import.
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 from scipy import signal
 
+# Internal imports.
 from soapyrx import analyze
+
+# * Global variables
 
 NFFT = 256
 USER_SELECT = None
 
 # Flag indicated that LaTeX fonts have been enabled.
 LATEX_FONT_ENABLED = False
+
+# * Functions
 
 def enable_latex_fonts():
     """Use LaTeX for text rendering."""
@@ -22,6 +34,8 @@ def enable_latex_fonts():
         "font.size": 15
     })
     LATEX_FONT_ENABLED = True
+
+# * Classes
 
 class SignalQuadPlot():
     """Quad plot of a signal.
