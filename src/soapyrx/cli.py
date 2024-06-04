@@ -145,21 +145,21 @@ def server_start(freq, samp_rate, duration, id, gain):
 
     """
     # Initialize the radio as requested.
-    with core.SoapyServer() as rad:
+    with core.SoapyServer() as server:
         # Initialize the radios individually.
         try:
             if id != -1:
                 rad_id = core.SoapyRadio(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
-                rad.register(rad_id)
+                server.register(rad_id)
         except Exception as e:
             l.log_n_exit("Error during radio initialization", 1, e)
-        if rad.get_nb() <= 0:
+        if server.get_nb() <= 0:
             l.LOGGER.error("we need at least one radio index to record!")
             exit(1)
         # Initialize the driver
-        rad.open()
+        server.open()
         # Listen for commands from another process.
-        rad.listen()
+        server.start()
 
 @cli.command()
 def server_stop():
