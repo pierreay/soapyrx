@@ -24,7 +24,7 @@ import SoapySDR
 from soapyrx import logger as l
 from soapyrx import helpers
 from soapyrx import plotters
-from soapyrx import lib as soapysdr_lib
+from soapyrx import core
 from soapyrx import analyze
 
 # * Global variables
@@ -87,11 +87,11 @@ def listen(freq, samp_rate, duration, id, gain):
 
     """
     # Initialize the radio as requested.
-    with soapysdr_lib.SoapyServer() as rad:
+    with core.SoapyServer() as rad:
         # Initialize the radios individually.
         try:
             if id != -1:
-                rad_id = soapysdr_lib.SoapyRadio(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
+                rad_id = core.SoapyRadio(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
                 rad.register(rad_id)
         except Exception as e:
             l.log_n_exit("Error during radio initialization", 1, e)
@@ -111,7 +111,7 @@ def quit():
     it, possibly letting the SDR driver in a bad state.
 
     """
-    soapysdr_lib.SoapyClient().quit()
+    core.SoapyClient().quit()
 
 @cli.command()
 @click.argument("file", type=click.Path())
@@ -165,7 +165,7 @@ def client(save, norm, amplitude, phase, plot_flag):
 
     """
     rad_id=0
-    rad = soapysdr_lib.SoapyClient()
+    rad = core.SoapyClient()
     # Record and save the signal.
     rad.record()
     rad.accept()

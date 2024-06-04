@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from soapyrx import lib as soapysdr_lib
+from soapyrx import core
 from soapyrx import plotters
 from soapyrx import logger as l
 
@@ -14,7 +14,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag,
     """
     # Radio block.
     try:
-        with soapysdr_lib.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=dir, gain=gain) as rad:
+        with core.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=dir, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
