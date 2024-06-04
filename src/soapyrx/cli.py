@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal
 import click
+import SoapySDR
 
 from soapyrx import lib as soapysdr_lib
 from soapyrx import analyze
@@ -229,5 +230,26 @@ def client(save, norm, amplitude, phase, plot_flag):
     if save != "":
          np.save(save, sig)
 
+@cli.command()
+def discover():
+    """Discover SDRs.
+
+    Discover connected SDRs and print capabilities.
+
+    """
+    results = SoapySDR.Device.enumerate()
+    for idx, result in enumerate(results):
+        l.LOGGER.info("{}".format(result))
+        l.LOGGER.info("Index: {}".format(idx))
+        sdr = SoapySDR.Device(result)
+        # Query device info.
+        l.LOGGER.info("Antennas: {}".format(sdr.listAntennas(SoapySDR.SOAPY_SDR_RX, 0)))
+        l.LOGGER.info("Gains: {}".format(sdr.listGains(SoapySDR.SOAPY_SDR_RX, 0)))
+        freqRanges = sdr.getFrequencyRange(SoapySDR.SOAPY_SDR_RX, 0)
+        for freqRange in freqRanges:
+            l.LOGGER.info("Frenquency range: {}".format(freqRange))
+    if not results:
+        l.LOGGER.error("No detected SDR!"); exit(1)
+    
 if __name__ == "__main__":
     cli()
