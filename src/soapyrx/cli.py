@@ -195,10 +195,9 @@ def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
             rad.open()
             # Perform the recording.
             rad.record()
-            # Save the radio capture on disk.
+            # Save the radio capture in temporary buffer.
             rad.accept()
-            rad.save(reinit=False)
-            # Save the radio capture outside the radio for an additional save or plot.
+            # Get the radio capture.
             sig = rad.get_signal()
     except Exception as e:
         l.LOGGER.critical("Error during radio recording!")
