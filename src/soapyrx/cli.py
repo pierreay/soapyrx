@@ -131,32 +131,33 @@ def plot(file, cut_flag, save_sig, save_plot, freq, samp):
     helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=True, save_sig=save_sig, save_plot=save_plot, title=file)
 
 @cli.command()
+@click.argument("idx", type=int)
 @click.argument("freq", type=float)
 @click.argument("samp_rate", type=float)
 @click.option("--duration", type=float, default=0.5, help="Duration of the recording.")
-@click.option("--id", default=-1, help="Enable radio index.")
 @click.option("--gain", type=int, default=76, help="Gain for the SDR.")
-def server_start(freq, samp_rate, duration, id, gain):
+def server_start(idx, freq, samp_rate, duration, gain):
     """Start a radio server.
+
+    IDX is the radio index (see discover()). FREQ is the center frequency
+    (e.g., 2.4e9). SAMP is the sampling rate (e.g., 4e6).
     
     Start the radio in server mode, listening for commands from another process
     to performs recordings. This process will not go in background
     automatically, hence, use Bash to launch it in the background.
 
     """
-    # Initialize the radio as requested.
+    # Initialize the radio individually.
+    try:
+        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, dir=DIR, gain=gain)
+    except Exception as e:
+        l.LOGGER.critical("Error during radio initialization!")
+        raise e
+    # Create a server.
     with core.SoapyServer() as server:
-        # Initialize the radios individually.
-        try:
-            if id != -1:
-                rad_id = core.SoapyRadio(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
-                server.register(rad_id)
-        except Exception as e:
-            l.log_n_exit("Error during radio initialization", 1, e)
-        if server.get_nb() <= 0:
-            l.LOGGER.error("we need at least one radio index to record!")
-            exit(1)
-        # Initialize the driver
+        # Add the radio.
+        server.register(rad)
+        # Initialize the driver.
         server.open()
         # Listen for commands from another process.
         server.start()

@@ -186,10 +186,12 @@ class SoapyServer():
                 # if oe.errno != errno.EEXIST:
                 #     raise
 
+        # NOTE: Put logging before FIFO is opened before its wait for a client
+        # to return.
+        l.LOGGER.info("[{}:{}] Server started!".format(type(self).__name__, os.getpid()))
         # Create the FIFO.
         __create_fifo()
         # Open the FIFO.
-        l.LOGGER.info("SDR process #{} ready for listening!".format(os.getpid()))
         with open(PATH_FIFO_C2S, "r") as fifo:
             l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_C2S))
             # Infinitely listen for commands and execute the radio commands accordingly.
@@ -204,7 +206,7 @@ class SoapyServer():
                         cmds[cmd]()
                         __ack__(cmd)
                     elif cmd == "quit":
-                        l.LOGGER.info("Quit the listening mode!")
+                        l.LOGGER.info("[{}:{}] Server shutdown!".format(type(self).__name__, os.getpid()))
                         break
                 # Smart polling.
                 sleep(POLLING_INTERVAL)
@@ -478,7 +480,7 @@ class SoapyClient():
     STUB_WAIT = 0.5
 
     def __init__(self, enabled = True):
-        l.LOGGER.info("Initialize a SoapySDR client... (enabled={})".format(enabled))
+        l.LOGGER.debug("Initialize a SoapySDR client... (enabled={})".format(enabled))
         self.enabled = enabled
 
     def __cmd__(self, cmd):
