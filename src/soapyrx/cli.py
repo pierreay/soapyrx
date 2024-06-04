@@ -54,7 +54,7 @@ def load_raw_trace(dir, rad_idx, rec_idx, log=False):
 @click.option("--log/--no-log", default=True, help="Enable or disable logging.")
 @click.option("--loglevel", default="INFO", help="Set the logging level.")
 def cli(config, dir, log, loglevel):
-    """Signal recording utility.
+    """Signal recording tool.
 
     CONFIG is the configuation file.
 
@@ -76,13 +76,12 @@ def cli(config, dir, log, loglevel):
 @click.option("--duration", type=float, default=0.5, help="Duration of the recording.")
 @click.option("--id", default=-1, help="Enable radio index.")
 @click.option("--gain", type=int, default=76, help="Gain for the SDR.")
-def listen(freq, samp_rate, duration, id, gain):
-    """Initialize the radio and listen for commands.
+def server_start(freq, samp_rate, duration, id, gain):
+    """Start a radio server.
     
-    This commands will put our radio module in server mode, where the radio is
-    listening for commands from another process through a pipe to perform
-    recordings. This process will not go in background automatically, hence,
-    use Bash to launch it in the background.
+    Start the radio in server mode, listening for commands from another process
+    to performs recordings. This process will not go in background
+    automatically, hence, use Bash to launch it in the background.
 
     """
     # Initialize the radio as requested.
@@ -103,8 +102,8 @@ def listen(freq, samp_rate, duration, id, gain):
         rad.listen()
 
 @cli.command()
-def quit():
-    """Send a quit message to the listening radio server.
+def server_stop():
+    """Stop a radio server.
 
     This command is used to properly quit the radio server instead of killing
     it, possibly letting the SDR driver in a bad state.
@@ -157,11 +156,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
 @click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 def client(save, amplitude, phase, plot_flag):
-    """Record a signal by connecting to the running and configured SDR server.
-
-    It will automatically use the first found radio with ID 0.
-
-    """
+    """Record a signal from a radio server."""
     rad_id=0
     rad = core.SoapyClient()
     # Record and save the signal.
