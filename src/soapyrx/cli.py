@@ -47,7 +47,7 @@ def load_raw_trace(dir, rad_idx, rec_idx, log=False):
 # * Command-line interface
 
 @click.group(context_settings={'show_default': True})
-@click.option("--config", type=click.Path(), default="config.toml", help="Path of the TOML configuration file.")
+@click.option("--config", type=click.Path(), default="", help="Path of a TOML configuration file.")
 @click.option("--dir", type=click.Path(), default="/tmp", help="Temporary directory used to hold raw recording.")
 @click.option("--log/--no-log", default=True, help="Enable or disable logging.")
 @click.option("--loglevel", default="INFO", help="Set the logging level.")
@@ -62,11 +62,11 @@ def cli(config, dir, log, loglevel):
     # Set the temporary directory.
     DIR = path.expanduser(dir)
     # Load the configuration file.
-    if path.exists(config):
+    if config != "" and path.exists(config):
         with open(config, "rb") as f:
             CONFIG = tomllib.load(f)
-    else:
-        l.LOGGER.warning("Configuration file not found: {}".format(path.abspath(config)))
+    elif config != "":
+        l.LOGGER.error("Configuration file not found: {}".format(path.abspath(config)))
 
 @cli.command()
 @click.argument("freq_nf", type=float)
