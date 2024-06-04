@@ -116,62 +116,39 @@ def quit():
     soapysdr_lib.MySoapySDRsClient().quit()
 
 @cli.command()
-@click.argument("samp_rate", type=float)
-@click.option("--amplitude/--no-amplitude", default=True, help="Plot the amplitude of the traces.")
-@click.option("--phase/--no-phase", default=False, help="Plot the phase of the traces.")
-@click.option("--nf-id", default=-1, help="Enable and associate radio index to near-field (NF) recording.")
-@click.option("--ff-id", default=-1, help="Enable and associate radio index to far-field (FF) recording.")
-@click.option("--fast/--no-fast", default=False, help="Decimate the signal to speed-up plotting.")
-def plot(samp_rate, amplitude, phase, nf_id, ff_id, fast):
-    """Plot RAW traces from DIR.
-
-    SAMP_RATE is the sampling rate used for both recording.
-
-    """
-    s_arr = []
-    nf_arr = None
-    ff_arr = None
-    # Load the traces and quit with an error if nothing is choosen.
-    if nf_id != -1:
-        nf_arr = load_raw_trace(DIR, nf_id, 0, log=True)
-        s_arr.append(nf_arr)
-    if ff_id != -1:
-        ff_arr = load_raw_trace(DIR, ff_id, 0, log=True)
-        s_arr.append(ff_arr)
-    if nf_arr is None and ff_arr is None:
-        l.LOGGER.error("we need at least one trace index to plot!")
-        exit(1)
-    # Truncate the traces to the exact size for plotting using synchronized axis.
-    s_arr = np.asarray(analyze.truncate_min(s_arr))
-    # Plot the result.
-    if amplitude is True:
-        libplot.plot_time_spec_sync_axis(s_arr, samp_rate, comp=analyze.CompType.AMPLITUDE, fast=fast)
-    if phase is True:
-        libplot.plot_time_spec_sync_axis(s_arr, samp_rate, comp=analyze.CompType.PHASE, fast=fast)
-
-@cli.command()
-@click.argument("samp_rate", type=float)
 @click.argument("file", type=click.Path())
-@click.option("--cut/--no-cut", "cut_flag", default=False, help="Cut the recorded signal.")
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
+@click.option("--cut/--no-cut", "cut_flag", default=False, help="Cut the plotted signal.")
+@click.option("--save-sig", default="", help="If set to a file path, save the plotted signal as .npy file.")
 @click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
-@click.option("--freq", type=float, default=None, help="Set the center frequency for the spectrogram.")
-def plot_file(samp_rate, file, cut_flag, save, save_plot, freq):
-    """Plot a trace from FILE.
+@click.option("--freq", type=float, default=None, help="Center frequency of the recording (plot feature).")
+@click.option("--samp", type=float, default=None, help="Sampling rate of the recording (plot feature).")
+def plot(file, cut_flag, save_sig, save_plot, freq, samp):
+    """Plot a signal.
 
-    SAMP_RATE is the sampling rate used for the recording.
+    FILE is the path to the file.
 
     """
-    sig = np.load(file)
-    if cut_flag is True:
-        pltshrk = libplot.PlotShrink(sig)
-        pltshrk.plot()
-        sig = pltshrk.get_signal_from(sig)
-    libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot(save=save_plot, title=file)
-    # Save the signal as requested.
-    if save != "":
-        l.LOGGER.info("Additional save of plotted signal to: {}".format(save))
-        np.save(save, sig)
+    # Signal loading block.
+    try:
+        sig = np.load(file)
+    except Exception as e:
+        l.LOGGER.critical("Cannot load signal from disk: {}".format(e)); exit(1)
+    # Simple visualization and processing block.
+    try:
+        # Cut the signal as requested.
+        if cut_flag is True:
+            pltshrk = libplot.PlotShrink(sig, sr=samp, fc=freq)
+            pltshrk.plot()
+            sig = pltshrk.get_signal_from(sig)
+        # Plot the signal.
+        libplot.SignalQuadPlot(sig, sr=samp, fc=freq).plot(save=save_plot, title=file)
+        # Save the signal as requested.
+        if save_sig != "":
+            l.LOGGER.info("Save recording: {}".format(save_sig))
+            np.save(save_sig, sig)
+    except Exception as e:
+        l.LOGGER.critical("Error during signal processing!")
+        raise e
 
 @cli.command()
 @click.argument("freq", type=float)
