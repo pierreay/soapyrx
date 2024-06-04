@@ -252,11 +252,5 @@ def client(save, norm, amplitude, phase, plot_flag):
     if save != "":
          np.save(save, sig)
 
-@cli.command()
-def debug():
-    """Debug currently recorded radio signals."""
-    sig = load_raw_trace(DIR, 0, 0, log=True)
-    from IPython import embed; embed()
-        
 if __name__ == "__main__":
     cli()
