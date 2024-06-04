@@ -345,7 +345,7 @@ class MySoapySDR():
     def open(self):
         # Initialize the SoapySDR streams.
         if self.enabled:
-            l.LOGGER.info("initialize streams for radio #{}".format(self.idx))
+            l.LOGGER.debug("[{}:{}] Setup and active SoapySDR stream".format(type(self).__name__, self.idx))
             # From SoapySDR/include/SoapySDR/Device.h:
             # - "CF32" - complex float32 (8 bytes per element)
             # - "CS16" - complex int16   (4 bytes per element)
@@ -376,7 +376,7 @@ class MySoapySDR():
             # Number of samples that can fit in the RX buffer.
             rx_buff_len = len(self.rx_buff)
             if log is True:
-                l.LOGGER.info("Radio #{} start recording for {:.2}s...".format(self.idx, duration))
+                l.LOGGER.info("[{}:{}] Start recording during {:.2}s...".format(type(self).__name__, self.idx, duration))
             while len(self.rx_signal_candidate) < samples:
                 # Number of samples that the readStream() function will try to
                 # read from the SDR. It is equal to the minimum between: 1)
@@ -395,7 +395,7 @@ class MySoapySDR():
                     # signal inside the `Candidate buffer'.
                     self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:readStream_len]))
             if log is True:
-                l.LOGGER.info("Radio #{} finished recording!".format(self.idx))
+                l.LOGGER.info("[{}:{}] Recording finished!".format(type(self).__name__, self.idx, duration))
         else:
             time.sleep(duration)
 

@@ -215,6 +215,7 @@ def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
             libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot()
         # Save the signal as requested.
         if save_path != "":
+            l.LOGGER.info("Save recording: {}".format(save_path))
             np.save(save_path, sig)
     except Exception as e:
         l.LOGGER.critical("Error during signal processing!")
