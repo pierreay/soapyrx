@@ -2,6 +2,9 @@
 
 # * Importation
 
+# Standard import.
+from os import path
+
 # External import.
 import numpy as np
 import SoapySDR
@@ -87,7 +90,7 @@ def server_start(idx, freq, samp_rate, duration, gain, dir):
         # Listen for commands from another process.
         server.start()
 
-def client(save, plot_flag):
+def client(save, plot_flag, dir):
     """Helper for starting a client."""
     client = core.SoapyClient()
     # Record and save the signal.
@@ -98,7 +101,7 @@ def client(save, plot_flag):
     # Save the radio capture outside the radio for an additional save or plot.
     # NOTE: Not especially efficient since we use the disk as buffer here,
     # but the SDR client cannot receive data from the SDR server currently.
-    sig = load_raw_trace(dir=DIR, rad_idx=0, rec_idx=0, log=False)
+    sig = np.load(path.join(dir, "raw_{}_{}.npy".format(0, 0)))
     # Plot the signal as requested.
     if plot_flag is True:
         plotters.SignalQuadPlot(sig).plot()

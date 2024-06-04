@@ -30,21 +30,6 @@ from soapyrx import core
 CONFIG = None
 DIR = None
 
-# * Functions
-
-def load_raw_trace(dir, rad_idx, rec_idx, log=False):
-    trace = None
-    fp = path.join(dir, "raw_{}_{}.npy".format(rad_idx, rec_idx))
-    if path.exists(fp):
-        l.LOGGER.info("Load RAW trace from {}".format(fp))
-        try:
-            trace = np.load(fp)
-        except Exception as e:
-            print(e)
-    else:
-        l.LOGGER.warning("No loaded raw trace for radio index #{}!".format(rad_idx))
-    return trace
-
 # * Command-line interface
 
 @click.group(context_settings={'show_default': True})
@@ -151,7 +136,7 @@ def server_stop():
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 def client(save, plot_flag):
     """Record a signal from a radio server."""
-    helpers.client(save, plot_flag)
+    helpers.client(save, plot_flag, DIR)
     
 if __name__ == "__main__":
     cli()
