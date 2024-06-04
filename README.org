@@ -8,7 +8,9 @@ as the corresponding module is installed. It not meant to process datasets of
 signals (/e.g./, conversion, alignment, normalization).
 
 - Features ::
-  - Record from multiple SDRs in parallel.
+  - One-shot record-plot-cut-save from the command-line.
+  - Server mode controlled from a client (local socket).
+  - Multiple synchronized SDRs controlled in parallel.
   - Display basic signal visualization (amplitude, phase rotation, time-domain, frequency-domain).
   - Perform single-signal operations (/e.g./, interactive cutting).
   - Use complex numbers (I/Q) for storage (=numpy.complex64=).
