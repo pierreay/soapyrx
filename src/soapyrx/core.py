@@ -25,9 +25,11 @@ from soapyrx import logger as l
 
 # Path of the FIFO files used between SoapyServer and SoapyClient.
 # Client -> FIFO -> Server
-PATH_FIFO_C2S = "/tmp/soapysdr.fifo"
+PATH_FIFO_C2S_CMD = "/tmp/c2s-cmd.fifo"
+PATH_FIFO_C2S_DATA = "/tmp/c2s-data.fifo"
 # Server -> FIFO -> Client
-PATH_FIFO_S2C = "/tmp/soapysdr_client.fifo"
+PATH_FIFO_S2C_CMD = "/tmp/s2c-cmd.fifo"
+PATH_FIFO_S2C_DATA = "/tmp/s2c-data.fifo"
 
 # Polling interval for a while True loop , i.e. sleeping time, i.e. interval to
 # check whether a command is queued in the FIFO or not. High enough to not
@@ -72,12 +74,14 @@ class SoapyServer():
         l.LOGGER.debug("SoapyServer.close()")
         for sdr in self.sdrs:
             sdr.close()
-        if path.exists(PATH_FIFO_C2S):
-            # Delete the FIFO.
-            os.remove(PATH_FIFO_C2S)
-        if path.exists(PATH_FIFO_S2C):
-            # Delete the FIFO.
-            os.remove(PATH_FIFO_S2C)
+        if path.exists(PATH_FIFO_C2S_CMD):
+            os.remove(PATH_FIFO_C2S_CMD)
+        if path.exists(PATH_FIFO_S2C_CMD):
+            os.remove(PATH_FIFO_S2C_CMD)
+        if path.exists(PATH_FIFO_C2S_DATA):
+            os.remove(PATH_FIFO_C2S_DATA)
+        if path.exists(PATH_FIFO_S2C_DATA):
+            os.remove(PATH_FIFO_S2C_DATA)
 
     def record_start(self):
         """Asynchronous version of record().
@@ -158,29 +162,33 @@ class SoapyServer():
             the FIFO in W mode.
 
             """
-            with open(PATH_FIFO_S2C, "w") as fifo_w:
+            with open(PATH_FIFO_S2C_CMD, "w") as fifo_w:
                 ack = "ack:{}".format(cmd)
-                l.LOGGER.debug("[server] Opened FIFO_CLIENT at {}".format(PATH_FIFO_S2C))
+                l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_S2C_CMD))
                 fifo_w.write(ack)
                 # NOTE: Help but not enough to prevent a bug where two
                 # successive ack message are read concatenated in one single
                 # read from the client:
                 fifo_w.write("")
-                l.LOGGER.debug("[server] FIFO_CLIENT <- {}".format(ack))
+                l.LOGGER.debug("[server] FIFO <- {}".format(ack))
 
         def __create_fifo():
             """Create the named pipe (FIFO)."""
             # Remove previously created FIFO.
             try:
-                os.remove(PATH_FIFO_C2S)
-                os.remove(PATH_FIFO_S2C)
+                os.remove(PATH_FIFO_C2S_CMD)
+                os.remove(PATH_FIFO_S2C_CMD)
+                os.remove(PATH_FIFO_C2S_DATA)
+                os.remove(PATH_FIFO_S2C_DATA)
             except Exception as e:
                 if not isinstance(e, FileNotFoundError):
                     raise e
             # Create the named pipe (FIFO).
             try:
-                os.mkfifo(PATH_FIFO_C2S)
-                os.mkfifo(PATH_FIFO_S2C)
+                os.mkfifo(PATH_FIFO_C2S_CMD)
+                os.mkfifo(PATH_FIFO_S2C_CMD)
+                os.mkfifo(PATH_FIFO_C2S_DATA)
+                os.mkfifo(PATH_FIFO_S2C_DATA)
             except OSError as oe:
                 raise
                 # if oe.errno != errno.EEXIST:
@@ -192,8 +200,8 @@ class SoapyServer():
         # Create the FIFO.
         __create_fifo()
         # Open the FIFO.
-        with open(PATH_FIFO_C2S, "r") as fifo:
-            l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_C2S))
+        with open(PATH_FIFO_C2S_CMD, "r") as fifo:
+            l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_C2S_CMD))
             # Infinitely listen for commands and execute the radio commands accordingly.
             while True:
                 cmd = fifo.read()
@@ -489,7 +497,7 @@ class SoapyClient():
         # arrived concatenated at the reader process.
         if self.enabled is True:
             l.LOGGER.debug("[client] FIFO <- {}".format(cmd))
-            with open(PATH_FIFO_C2S, "w") as fifo:
+            with open(PATH_FIFO_C2S_CMD, "w") as fifo:
                 fifo.write(cmd)
             sleep(0.1)
 
@@ -498,12 +506,12 @@ class SoapyClient():
         if self.enabled is True:
             time_start = time()
             l.LOGGER.debug("[client] Waiting for: {}".format(cmd))
-            with open(PATH_FIFO_S2C, "r") as fifo:
-                l.LOGGER.debug("[client] Opened FIFO_CLIENT at {}".format(PATH_FIFO_S2C))
+            with open(PATH_FIFO_S2C_CMD, "r") as fifo:
+                l.LOGGER.debug("[client] Opened FIFO at {}".format(PATH_FIFO_S2C_CMD))
                 while True:
                     ack = fifo.read()
                     if len(ack) > 0:
-                        l.LOGGER.debug("[client] FIFO_CLIENT -> {}".format(ack))
+                        l.LOGGER.debug("[client] FIFO -> {}".format(ack))
                         if ack == "ack:{}".format(cmd):
                             l.LOGGER.debug("[client] Wait completed!")
                             break
