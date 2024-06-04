@@ -129,7 +129,7 @@ def server_stop():
     it, possibly letting the SDR driver in a bad state.
 
     """
-    core.SoapyClient().quit()
+    core.SoapyClient().stop()
     
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")

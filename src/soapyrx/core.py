@@ -17,6 +17,7 @@ import os
 from os import path
 import errno
 from threading import Thread
+import sys
 
 # External import.
 import numpy as np
@@ -44,15 +45,6 @@ POLLING_INTERVAL = 1e-6
 # * Classes
 
 class SoapyServer():
-    # Available commands on server-side.
-    CMDS = {"record":       self.record,
-            "accept":       self.accept,
-            "save":         self.save,
-            "disable":      self.disable,
-            "record_start": self.record_start,
-            "record_stop":  self.record_stop,
-            "get":          self.get}
-
     def __enter__(self):
         return self
 
@@ -67,6 +59,25 @@ class SoapyServer():
         # NOTE: The IDXs must be unique, as the IDX is used as filename
         # identifier and as SoapySDR's result index.
         self.registered_idx = []
+
+    def __ack__(self, cmd):
+        """Acknoledge the end of the command CMD."""
+        with open(PATH_FIFO_S2C_CMD, "w") as fifo:
+            ack = "ack:{}".format(cmd)
+            l.LOGGER.debug("[{}] Opened FIFO (w): {}".format(type(self).__name__, PATH_FIFO_S2C_CMD))
+            fifo.write(ack)
+            # NOTE: Help but not enough to prevent a bug where two
+            # successive ack message are read concatenated in one single
+            # read from the client:
+            fifo.write("")
+            l.LOGGER.debug("[{}] FIFO <- {}".format(type(self).__name__, ack))    
+
+    def __send__(self, data):
+        """Send DATA to the client FIFO."""
+        with open(PATH_FIFO_S2C_DATA, "wb") as fifo:
+            l.LOGGER.debug("[{}] Opened FIFO (wb): {}".format(type(self).__name__, PATH_FIFO_S2C_CMD))
+            fifo.write(data)
+            l.LOGGER.debug("[{}] FIFO <- {} bytes".format(type(self).__name__, sys.getsizeof(data)))    
 
     def register(self, sdr):
         l.LOGGER.debug("SoapyServer.register(idx={})".format(sdr.idx))
@@ -169,23 +180,8 @@ class SoapyServer():
         communicate with this server.
 
         """
-        def __ack__(cmd):
-            """Acknoledge the end of the command execution by opening-closing
-            the FIFO in W mode.
-
-            """
-            with open(PATH_FIFO_S2C_CMD, "w") as fifo_w:
-                ack = "ack:{}".format(cmd)
-                l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_S2C_CMD))
-                fifo_w.write(ack)
-                # NOTE: Help but not enough to prevent a bug where two
-                # successive ack message are read concatenated in one single
-                # read from the client:
-                fifo_w.write("")
-                l.LOGGER.debug("[server] FIFO <- {}".format(ack))
-
         def __create_fifo():
-            """Create the named pipe (FIFO)."""
+            """Create the named pipes (FIFOs)."""
             # Remove previously created FIFO.
             try:
                 os.remove(PATH_FIFO_C2S_CMD)
@@ -195,7 +191,7 @@ class SoapyServer():
             except Exception as e:
                 if not isinstance(e, FileNotFoundError):
                     raise e
-            # Create the named pipe (FIFO).
+            # Create the named pipes (FIFOs).
             try:
                 os.mkfifo(PATH_FIFO_C2S_CMD)
                 os.mkfifo(PATH_FIFO_S2C_CMD)
@@ -203,27 +199,34 @@ class SoapyServer():
                 os.mkfifo(PATH_FIFO_S2C_DATA)
             except OSError as oe:
                 raise
-                # if oe.errno != errno.EEXIST:
-                #     raise
 
+        # Available commands on server-side.
+        cmds = {"record":       self.record,
+                "accept":       self.accept,
+                "save":         self.save,
+                "disable":      self.disable,
+                "record_start": self.record_start,
+                "record_stop":  self.record_stop,
+                "get":          self.get}
+
+        # Create the FIFO.
+        __create_fifo()
         # NOTE: Put logging before FIFO is opened before its wait for a client
         # to return.
         l.LOGGER.info("[{}:{}] Server started!".format(type(self).__name__, os.getpid()))
-        # Create the FIFO.
-        __create_fifo()
         # Open the FIFO.
         with open(PATH_FIFO_C2S_CMD, "r") as fifo:
-            l.LOGGER.debug("[server] Opened FIFO at {}".format(PATH_FIFO_C2S_CMD))
+            l.LOGGER.debug("[{}] Opened FIFO (r): {}".format(type(self).__name__, PATH_FIFO_C2S_CMD))
             # Infinitely listen for commands and execute the radio commands accordingly.
             while True:
                 cmd = fifo.read()
                 if len(cmd) > 0:
-                    l.LOGGER.debug("[server] FIFO -> {}".format(cmd))
+                    l.LOGGER.debug("[{}] FIFO -> {}".format(type(self).__name__, cmd))
                     # Execute the received command and acknowledge its execution.
-                    if cmd in CMDS:
-                        CMDS[cmd]()
-                        __ack__(cmd)
-                    elif cmd == "quit":
+                    if cmd in cmds:
+                        cmds[cmd]()
+                        self.__ack__(cmd)
+                    elif cmd == "stop":
                         l.LOGGER.info("[{}:{}] Server shutdown!".format(type(self).__name__, os.getpid()))
                         break
                 # Smart polling.
@@ -233,9 +236,13 @@ class SoapyServer():
         """Get the number of currently registed SDRs."""
         return len(self.sdrs)
 
-    def get_signal(self, idx):
-        """Return the receveid signal of radio indexed by IDX."""
-        return self.sdrs[idx].get_signal()
+    def get(self, idx = 0):
+        """Send the receveid signal of radio indexed by IDX on client FIFO."""
+        sig = self.sdrs[idx].get()
+        self.__send__(sig)
+        l.LOGGER.debug("[{}] FIFO <- signal: len={}".format(type(self).__name__, len(sig)))
+        l.LOGGER.debug("[{}] FIFO <- signal: head={}".format(type(self).__name__, sig[:3]))
+        l.LOGGER.debug("[{}] FIFO <- signal: tail={}".format(type(self).__name__, sig[-3:]))
 
 class SoapyRadio():
     """SoapySDR controlled radio.
@@ -474,15 +481,14 @@ class SoapyRadio():
         l.LOGGER.info("disable radio #{}".format(self.idx))
         self.enabled = False
 
-    def get_signal(self):
+    def get(self):
         """Return the receveid signal.
 
         The returned signal will be I/Q represented using np.complex64 numbers.
 
         """
-        sig = self.rx_signal
-        assert sig.dtype == np.complex64, "Signal should be complex numbers!"
-        return sig
+        assert self.rx_signal.dtype == np.complex64, "Signal should be complex numbers!"
+        return self.rx_signal
 
 class SoapyClient():
     """Control a SoapyServer object living in another process.
@@ -517,7 +523,7 @@ class SoapyClient():
             time_start = time()
             l.LOGGER.debug("[client] Waiting for: {}".format(cmd))
             with open(PATH_FIFO_S2C_CMD, "r") as fifo:
-                l.LOGGER.debug("[client] Opened FIFO at {}".format(PATH_FIFO_S2C_CMD))
+                l.LOGGER.debug("[client] Opened FIFO (r): {}".format(PATH_FIFO_S2C_CMD))
                 while True:
                     ack = fifo.read()
                     if len(ack) > 0:
@@ -532,6 +538,17 @@ class SoapyClient():
         else:
             l.LOGGER.debug("Waiting stub for disabled SoapySDR client by sleeping {}s".format(self.STUB_WAIT))
             sleep(self.STUB_WAIT)
+
+    def __recv__(self):
+        """Receive data from the server FIFO."""
+        with open(PATH_FIFO_S2C_DATA, "rb") as fifo:
+            l.LOGGER.debug("[{}] Opened FIFO (rb): {}".format(type(self).__name__, PATH_FIFO_S2C_DATA))
+            while True:
+                data = fifo.read()
+                if len(data) > 0:
+                    l.LOGGER.debug("[{}] FIFO -> {} bytes".format(type(self).__name__, sys.getsizeof(data)))
+                    return data
+                sleep(POLLING_INTERVAL)
 
     def record(self):
         self.__cmd__("record")
@@ -553,8 +570,17 @@ class SoapyClient():
         self.__cmd__("save")
         self.__wait__("save")
 
+    def get(self):
+        self.__cmd__("get")
+        sig = np.frombuffer(self.__recv__(), dtype=np.complex64)
+        l.LOGGER.debug("[{}:0] FIFO -> signal: len={}".format(type(self).__name__, len(sig)))
+        l.LOGGER.debug("[{}:0] FIFO -> signal: head={}".format(type(self).__name__, sig[:3]))
+        l.LOGGER.debug("[{}:0] FIFO -> signal: tail={}".format(type(self).__name__, sig[-3:]))
+        self.__wait__("get")
+        return sig
+
     def disable(self):
         self.__cmd__("disable")
 
-    def quit(self):
-        self.__cmd__("quit")
+    def stop(self):
+        self.__cmd__("stop")

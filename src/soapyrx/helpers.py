@@ -48,7 +48,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag,
             # Save the radio capture in temporary buffer.
             rad.accept()
             # Return the radio capture.
-            return rad.get_signal()
+            return rad.get()
     except Exception as e:
         l.LOGGER.critical("Error during radio recording!")
         raise e    
@@ -96,12 +96,7 @@ def client(save, plot_flag, dir):
     # Record and save the signal.
     client.record()
     client.accept()
-    client.save()
-    # NOTE: Following code duplicated from `record()'.
-    # Save the radio capture outside the radio for an additional save or plot.
-    # NOTE: Not especially efficient since we use the disk as buffer here,
-    # but the SDR client cannot receive data from the SDR server currently.
-    sig = np.load(path.join(dir, "raw_{}_{}.npy".format(0, 0)))
+    sig = client.get()
     # Plot the signal as requested.
     if plot_flag is True:
         plotters.SignalQuadPlot(sig).plot()
