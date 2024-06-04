@@ -1,29 +1,28 @@
 #!/usr/bin/python3
 
+# Standard import.
 import time
 from os import path
+
+# Compatibility import.
 try:
     import tomllib
 # NOTE: For Python <= 3.11:
 except ModuleNotFoundError as e:
     import tomli as tomllib
 
+# External import.
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal
 import click
 import SoapySDR
 
+# Internal imports.
 from soapyrx import lib as soapysdr_lib
 from soapyrx import analyze
 from soapyrx import log as l
 from soapyrx import plot as libplot
-
-# * Helper functions
-
-def exit_on_cond(cond, ret=1):
-    if cond is True:
-        exit(ret)
 
 # * Global variables
 
