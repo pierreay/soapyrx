@@ -110,6 +110,26 @@ def quit():
     """
     soapysdr_lib.SoapyClient().quit()
 
+def plot_helper(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="", save_plot="", title=None):
+    """Helper for plotting functions."""
+    # Simple visualization and processing block.
+    try:
+        # Cut the signal as requested.
+        if cut_flag is True:
+            pltshrk = libplot.PlotShrink(sig, sr=samp, fc=freq)
+            pltshrk.plot()
+            sig = pltshrk.get_signal_from(sig)
+        # Plot the signal as requested.
+        if plot_flag:
+            libplot.SignalQuadPlot(sig, sr=samp, fc=freq).plot(save=save_plot, title=title)
+        # Save the signal as requested.
+        if save_sig != "":
+            l.LOGGER.info("Save recording: {}".format(save_sig))
+            np.save(save_sig, sig)
+    except Exception as e:
+        l.LOGGER.critical("Error during signal processing!")
+        raise e    
+
 @cli.command()
 @click.argument("file", type=click.Path())
 @click.option("--cut/--no-cut", "cut_flag", default=False, help="Cut the plotted signal.")
@@ -128,41 +148,27 @@ def plot(file, cut_flag, save_sig, save_plot, freq, samp):
         sig = np.load(file)
     except Exception as e:
         l.LOGGER.critical("Cannot load signal from disk: {}".format(e)); exit(1)
-    # Simple visualization and processing block.
-    try:
-        # Cut the signal as requested.
-        if cut_flag is True:
-            pltshrk = libplot.PlotShrink(sig, sr=samp, fc=freq)
-            pltshrk.plot()
-            sig = pltshrk.get_signal_from(sig)
-        # Plot the signal.
-        libplot.SignalQuadPlot(sig, sr=samp, fc=freq).plot(save=save_plot, title=file)
-        # Save the signal as requested.
-        if save_sig != "":
-            l.LOGGER.info("Save recording: {}".format(save_sig))
-            np.save(save_sig, sig)
-    except Exception as e:
-        l.LOGGER.critical("Error during signal processing!")
-        raise e
+    plot_helper(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=True, save_sig=save_sig, save_plot=save_plot, title=file)
 
 @cli.command()
 @click.argument("freq", type=float)
-@click.argument("samp_rate", type=float)
+@click.argument("samp", type=float)
 @click.option("--duration", type=float, default=1, help="Duration of the recording [s].")
 @click.option("--gain", type=int, default=0, help="Gain for the SDR [dB].")
-@click.option("--save", "save_path", default="", help="If set to a file path, save the recorded signal as .npy file.")
+@click.option("--save-sig", default="", help="If set to a file path, save the recorded signal as .npy file.")
+@click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 @click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
-def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
+def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag):
     """Record a signal.
 
     It will automatically use the first found radio. FREQ is the center
-    frequency (e.g., 2.4e9). SAMP_RATE is the sampling rate (e.g., 4e6).
+    frequency (e.g., 2.4e9). SAMP is the sampling rate (e.g., 4e6).
 
     """
     # Radio block.
     try:
-        with soapysdr_lib.SoapyRadio(fs=samp_rate, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
+        with soapysdr_lib.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
@@ -174,24 +180,8 @@ def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
     except Exception as e:
         l.LOGGER.critical("Error during radio recording!")
         raise e
-    # Simple visualization and processing block.
-    try:
-        # Cut the signal as requested.
-        if cut_flag is True:
-            pltshrk = libplot.PlotShrink(sig, sr=samp_rate, fc=freq)
-            pltshrk.plot()
-            sig = pltshrk.get_signal_from(sig)
-        # Plot the signal as requested.
-        if plot_flag:
-            libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot()
-        # Save the signal as requested.
-        if save_path != "":
-            l.LOGGER.info("Save recording: {}".format(save_path))
-            np.save(save_path, sig)
-    except Exception as e:
-        l.LOGGER.critical("Error during signal processing!")
-        raise e
-
+    plot_helper(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
+    
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--norm/--no-norm", default=False, help="Normalize the recording before saving.")
