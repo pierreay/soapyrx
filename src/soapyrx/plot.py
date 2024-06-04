@@ -340,6 +340,10 @@ class PlotShrink():
     """
     # Plotted signal (numpy ND array of complex numbers).
     signal = None
+    # Sampling rate of the plotted signal [Msps].
+    sr = None
+    # Center frequency of the plotted signal [Hz].
+    fc = None
     # Matplotlib main figure (from plt.subplots()).
     fig = None
     # Matplotlib axis for temporal plot (from plt.subplots()).
@@ -351,7 +355,7 @@ class PlotShrink():
     # Integer defining the current uper bound of the signal.
     ub = None
 
-    def __init__(self, signal):
+    def __init__(self, signal, sr = None, fc = None):
         """Initialize the signal and the bounds.
 
         The signal must be complex.
@@ -362,6 +366,8 @@ class PlotShrink():
         assert signal.dtype == np.complex64
         # Initialization.
         self.signal = signal
+        self.sr = sr
+        self.fc = fc
         self.lb = 0
         self.ub = len(signal)
 
@@ -372,7 +378,7 @@ class PlotShrink():
         self.axspec.clear()
         # Plot the signal using new lower bound.
         self.axampl.plot(analyze.get_amplitude(self.signal[self.lb:self.ub]))
-        self.axspec.specgram(self.signal[self.lb:self.ub], NFFT=NFFT, sides="twosided", mode="magnitude")
+        self.axspec.specgram(self.signal[self.lb:self.ub], NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
         # Redraw the figure.
         self.fig.canvas.draw()
 
@@ -397,9 +403,9 @@ class PlotShrink():
         self.axampl.plot(analyze.get_amplitude(self.signal))
         self.axampl.set_xlabel('Sample [#]')
         self.axampl.set_ylabel('Amplitude')
-        self.axspec.specgram(self.signal, NFFT=NFFT, sides="twosided", mode="magnitude")
+        self.axspec.specgram(self.signal, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
         self.axspec.set_xlabel('Sample [#]')
-        self.axspec.set_ylabel('Frequency [Ratio]')
+        self.axspec.set_ylabel('Frequency [Hz]')
 
         # Adjust the main plot to make room for the sliders.
         self.fig.subplots_adjust(bottom=0.25)
