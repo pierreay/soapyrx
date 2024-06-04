@@ -18,7 +18,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal
 import click
-import SoapySDR
 
 # Internal import.
 from soapyrx import logger as l
@@ -77,20 +76,8 @@ def discover():
     Discover connected SDRs and print capabilities.
 
     """
-    results = SoapySDR.Device.enumerate()
-    for idx, result in enumerate(results):
-        l.LOGGER.info("{}".format(result))
-        l.LOGGER.info("Index: {}".format(idx))
-        sdr = SoapySDR.Device(result)
-        # Query device info.
-        l.LOGGER.info("Antennas: {}".format(sdr.listAntennas(SoapySDR.SOAPY_SDR_RX, 0)))
-        l.LOGGER.info("Gains: {}".format(sdr.listGains(SoapySDR.SOAPY_SDR_RX, 0)))
-        freqRanges = sdr.getFrequencyRange(SoapySDR.SOAPY_SDR_RX, 0)
-        for freqRange in freqRanges:
-            l.LOGGER.info("Frenquency range: {}".format(freqRange))
-    if not results:
-        l.LOGGER.error("No detected SDR!"); exit(1)
-
+    helpers.discover()
+    
 @cli.command()
 @click.argument("freq", type=float)
 @click.argument("samp", type=float)

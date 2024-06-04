@@ -1,10 +1,33 @@
 """Helpers functions wrapping classes or doing small computations."""
 
-import numpy as np
+# * Importation
 
+# External import.
+import numpy as np
+import SoapySDR
+
+# Internal import.
 from soapyrx import core
 from soapyrx import plotters
 from soapyrx import logger as l
+
+# * Functions for command-line interface
+
+def discover():
+    """Helper for discovering SDRs."""
+    results = SoapySDR.Device.enumerate()
+    for idx, result in enumerate(results):
+        l.LOGGER.info("{}".format(result))
+        l.LOGGER.info("Index: {}".format(idx))
+        sdr = SoapySDR.Device(result)
+        # Query device info.
+        l.LOGGER.info("Antennas: {}".format(sdr.listAntennas(SoapySDR.SOAPY_SDR_RX, 0)))
+        l.LOGGER.info("Gains: {}".format(sdr.listGains(SoapySDR.SOAPY_SDR_RX, 0)))
+        freqRanges = sdr.getFrequencyRange(SoapySDR.SOAPY_SDR_RX, 0)
+        for freqRange in freqRanges:
+            l.LOGGER.info("Frenquency range: {}".format(freqRange))
+    if not results:
+        l.LOGGER.error("No detected SDR!"); exit(1)
 
 def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag, dir):
     """Helper for recording functions.
@@ -63,6 +86,8 @@ def server_start(idx, freq, samp_rate, duration, gain, dir):
         server.open()
         # Listen for commands from another process.
         server.start()
+
+# * Functions for computations
 
 def phase_rot(trace):
     """Get the phase rotation of one or multiple traces."""
