@@ -148,12 +148,10 @@ def server_stop():
     
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
-@click.option("--amplitude/--no-amplitude", default=False, help="Extract only the amplitude of the signal.")
-@click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
-def client(save, amplitude, phase, plot_flag):
+def client(save, plot_flag):
     """Record a signal from a radio server."""
-    helpers.client(save, amplitude, phase, plot_flag)
+    helpers.client(save, plot_flag)
     
 if __name__ == "__main__":
     cli()

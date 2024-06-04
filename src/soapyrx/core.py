@@ -472,8 +472,7 @@ class SoapyClient():
     This class implements a command sending mechanism through a named pipe
     (FIFO) mechanism allowing to control another process that initialized the
     radio at startup. It allows to perform multiple radio recordings without
-    re-initializing the radio's driver while using different Python process
-    because of different calls from Bash.
+    re-initializing the radio's driver while using different client processes.
 
     """
     # Time sleeped to simulate wait a SoapySDR server's command return [s].
@@ -484,7 +483,7 @@ class SoapyClient():
         self.enabled = enabled
 
     def __cmd__(self, cmd):
-        """Send a command through the FIFO."""
+        """Send the command CMD through the FIFO."""
         # NOTE: The only way I found to reliably send the commands individually
         # is to open/close/sleep for each commands. Otherwise, the commands
         # arrived concatenated at the reader process.
@@ -495,7 +494,7 @@ class SoapyClient():
             sleep(0.1)
 
     def __wait__(self, cmd):
-        """Wait for the previous command to complete."""
+        """Wait for the command CMD to complete."""
         if self.enabled is True:
             time_start = time()
             l.LOGGER.debug("[client] Waiting for: {}".format(cmd))
@@ -517,10 +516,6 @@ class SoapyClient():
             sleep(self.STUB_WAIT)
 
     def record(self):
-        """Call the SoapyServer.record() method through the FIFO. Wait for the
-        command to complete.
-
-        """
         self.__cmd__("record")
         self.__wait__("record")
 
@@ -533,24 +528,14 @@ class SoapyClient():
         self.__wait__("record_stop")
 
     def accept(self):
-        """Call the SoapyServer.accept() method through the FIFO. Returns
-        immediately."""
         self.__cmd__("accept")
 
     def save(self):
-        """Call the SoapyServer.save() method through the FIFO. Returns
-        immediately."""
         self.__cmd__("save")
         self.__wait__("save")
 
     def disable(self):
-        """Call the SoapyServer.disable() method through the FIFO. Returns
-        immediately."""
         self.__cmd__("disable")
 
     def quit(self):
-        """Send instruction to quit the radio listening in server mode. Returns
-        immediately.
-
-        """
         self.__cmd__("quit")

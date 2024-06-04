@@ -87,21 +87,18 @@ def server_start(idx, freq, samp_rate, duration, gain, dir):
         # Listen for commands from another process.
         server.start()
 
-def client(save, amplitude, phase, plot_flag):
+def client(save, plot_flag):
     """Helper for starting a client."""
-    rad_id=0
-    rad = core.SoapyClient()
+    client = core.SoapyClient()
     # Record and save the signal.
-    rad.record()
-    rad.accept()
-    rad.save()
-    # NOTE: SoapyClient.save() is not synchronous, then wait enough for signal to be saved.
-    time.sleep(1)
+    client.record()
+    client.accept()
+    client.save()
     # NOTE: Following code duplicated from `record()'.
     # Save the radio capture outside the radio for an additional save or plot.
     # NOTE: Not especially efficient since we use the disk as buffer here,
     # but the SDR client cannot receive data from the SDR server currently.
-    sig = load_raw_trace(dir=DIR, rad_idx=rad_id, rec_idx=0, log=False)
+    sig = load_raw_trace(dir=DIR, rad_idx=0, rec_idx=0, log=False)
     # Plot the signal as requested.
     if plot_flag is True:
         plotters.SignalQuadPlot(sig).plot()
