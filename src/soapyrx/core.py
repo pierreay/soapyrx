@@ -537,6 +537,7 @@ class SoapyClient():
 
     def accept(self):
         self.__cmd__("accept")
+        self.__wait__("accept")
 
     def save(self):
         self.__cmd__("save")
