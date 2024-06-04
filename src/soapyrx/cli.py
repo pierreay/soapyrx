@@ -28,25 +28,21 @@ from soapyrx import core
 # * Global variables
 
 CONFIG = None
-DIR = None
 
 # * Command-line interface
 
 @click.group(context_settings={'show_default': True})
 @click.option("--config", type=click.Path(), default="", help="Path of a TOML configuration file.")
-@click.option("--dir", type=click.Path(), default="/tmp", help="Temporary directory used to hold raw recording.")
 @click.option("--log/--no-log", default=True, help="Enable or disable logging.")
 @click.option("--loglevel", default="INFO", help="Set the logging level.")
-def cli(config, dir, log, loglevel):
+def cli(config, log, loglevel):
     """Signal recording tool.
 
     CONFIG is the configuation file.
 
     """
-    global CONFIG, DIR
+    global CONFIG
     l.configure(log, loglevel)
-    # Set the temporary directory.
-    DIR = path.expanduser(dir)
     # Load the configuration file.
     if config != "" and path.exists(config):
         with open(config, "rb") as f:
@@ -79,7 +75,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
     frequency (e.g., 2.4e9). SAMP is the sampling rate (e.g., 4e6).
 
     """
-    sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain, save_sig=save_sig, save_plot=save_plot, plot_flag=plot_flag, cut_flag=cut_flag, dir=DIR)
+    sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain, save_sig=save_sig, save_plot=save_plot, plot_flag=plot_flag, cut_flag=cut_flag)
     helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
 
 @cli.command()
@@ -119,7 +115,7 @@ def server_start(idx, freq, samp_rate, duration, gain):
     automatically, hence, use Bash to launch it in the background.
 
     """
-    helpers.server_start(idx, freq, samp_rate, duration, gain, DIR)
+    helpers.server_start(idx, freq, samp_rate, duration, gain)
 
 @cli.command()
 def server_stop():
@@ -136,7 +132,7 @@ def server_stop():
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 def client(save, plot_flag):
     """Record a signal from a radio server."""
-    helpers.client(save, plot_flag, DIR)
+    helpers.client(save, plot_flag)
     
 if __name__ == "__main__":
     cli()

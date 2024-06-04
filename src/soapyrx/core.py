@@ -4,8 +4,6 @@ Allows to use a single or multiple SDRs in parallel using threads.
 
 """
 
-# TODO: Delete save code
-# TODO: Allows client to used reinit
 # TODO: Refactor TODOs for debug logging
 
 # * Importation
@@ -163,10 +161,10 @@ class SoapyServer():
         for sdr in self.sdrs:
             sdr.accept()
 
-    def save(self, dir = None, reinit = True):
-        l.LOGGER.debug("SoapyServer.save(dir={})".format(dir))
+    def reinit(self):
+        l.LOGGER.debug("SoapyServer.reinit()")
         for sdr in self.sdrs:
-            sdr.save(dir, reinit=reinit)
+            sdr.reinit()
 
     def disable(self):
         for sdr in self.sdrs:
@@ -203,7 +201,7 @@ class SoapyServer():
         # Available commands on server-side.
         cmds = {"record":       self.record,
                 "accept":       self.accept,
-                "save":         self.save,
+                "reinit":       self.reinit,
                 "disable":      self.disable,
                 "record_start": self.record_start,
                 "record_stop":  self.record_stop,
@@ -251,9 +249,9 @@ class SoapyRadio():
 
     1. Initialize: __init__() -> open()
 
-    2. Records: [ record() -> accept() ] ... -> save()
+    2. Records: [ record() -> accept() ] ... -> get()
 
-    3. Records: [ record() -> accept() ] ... -> save()
+    3. Records: [ record() -> accept() ] ... -> get()
 
     4. Deinitialize: close()
 
@@ -284,8 +282,8 @@ class SoapyRadio():
 
     # * Static functions.
 
-    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, dir = "/tmp", gain = 0):
-        l.LOGGER.debug("SoapyRadio.__init__(fs={},freq={},idx={},enabled={},duration={},dir={},gain={})".format(fs, freq, idx, enabled, duration, dir, gain))
+    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, gain = 0):
+        l.LOGGER.debug("SoapyRadio.__init__(fs={},freq={},idx={},enabled={},duration={},gain={})".format(fs, freq, idx, enabled, duration, gain))
         assert gain >= 0, "Gain should be positive!"
         # NOTE: Automatically convert floats to integers (allows using scentific notation, e.g. e6 or e9).
         self.fs = int(fs)
@@ -295,10 +293,8 @@ class SoapyRadio():
         self.enabled = enabled
         # Default duration if nothing is specified during self.record().
         self.duration = duration
-        # Default directory if nothing is specified during self.save().
-        self.dir = dir
         # Recording acceptation flag.
-        self.accepted = False # Set to True by accept() and to False by save().
+        self.accepted = False
         # Recording buffers.
         self.rx_signal = None
         self.rx_signal_candidate = None
@@ -443,26 +439,6 @@ class SoapyRadio():
             self.accepted = True
             self.rx_signal = np.concatenate((self.rx_signal, self.rx_signal_candidate))
 
-    def save(self, dir = None, reinit = True):
-        """Save the last accepted recording on disk.
-
-        The saved .npy file will use the np.complex64 data type.
-
-        :param reinit: If set to False, do not re-initialize the radio for a
-        next recording. SoapyRadio.reinit() should be called manually later.
-
-        """
-        if dir is None:
-            dir = self.dir
-        if self.enabled is True and self.accepted is True:
-            dir = path.expanduser(dir)
-            l.LOGGER.info("save recording of radio #{} into directory {}".format(self.idx, dir))
-            assert(path.exists(dir))
-            np.save(path.join(dir, "raw_{}_{}.npy".format(self.idx, 0)), self.rx_signal)
-            # Re-initialize for further recordings if requested [default].
-            if reinit is True:
-                self.reinit()
-
     def reinit(self):
         """Re-initialize the recording state and buffers such that a new
         recording can occur."""
@@ -566,9 +542,9 @@ class SoapyClient():
         self.__cmd__("accept")
         self.__wait__("accept")
 
-    def save(self):
-        self.__cmd__("save")
-        self.__wait__("save")
+    def reinit(self):
+        self.__cmd__("reinit")
+        self.__wait__("reinit")
 
     def get(self):
         self.__cmd__("get")

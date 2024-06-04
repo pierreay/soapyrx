@@ -32,7 +32,7 @@ def discover():
     if not results:
         l.LOGGER.error("No detected SDR!"); exit(1)
 
-def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag, dir):
+def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag):
     """Helper for recording functions.
 
     Return the recorded signal.
@@ -40,7 +40,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag,
     """
     # Radio block.
     try:
-        with core.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=dir, gain=gain) as rad:
+        with core.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
@@ -73,11 +73,11 @@ def plot(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="",
         l.LOGGER.critical("Error during signal processing!")
         raise e
 
-def server_start(idx, freq, samp_rate, duration, gain, dir):
+def server_start(idx, freq, samp_rate, duration, gain):
     """Helper for starting a server."""
     # Initialize the radio individually.
     try:
-        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, dir=dir, gain=gain)
+        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, gain=gain)
     except Exception as e:
         l.LOGGER.critical("Error during radio initialization!")
         raise e
@@ -90,19 +90,21 @@ def server_start(idx, freq, samp_rate, duration, gain, dir):
         # Listen for commands from another process.
         server.start()
 
-def client(save, plot_flag, dir):
+def client(save, plot_flag):
     """Helper for starting a client."""
     client = core.SoapyClient()
-    # Record and save the signal.
+    # Record and get the signal.
     client.record()
     client.accept()
     sig = client.get()
+    client.reinit()
     # Plot the signal as requested.
     if plot_flag is True:
         plotters.SignalQuadPlot(sig).plot()
     # Save the signal as requested.
     if save != "":
-         np.save(save, sig)
+        l.LOGGER.info("Save recording: {}".format(save_sig))
+        np.save(save, sig)
 
 # * Functions for computations
 
