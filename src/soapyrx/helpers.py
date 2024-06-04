@@ -2,8 +2,30 @@
 
 import numpy as np
 
+from soapyrx import lib as soapysdr_lib
 from soapyrx import plotters
 from soapyrx import logger as l
+
+def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag, dir):
+    """Helper for recording functions.
+
+    Return the recorded signal.
+
+    """
+    # Radio block.
+    try:
+        with soapysdr_lib.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=dir, gain=gain) as rad:
+            # Initialize the driver.
+            rad.open()
+            # Perform the recording.
+            rad.record()
+            # Save the radio capture in temporary buffer.
+            rad.accept()
+            # Return the radio capture.
+            return rad.get_signal()
+    except Exception as e:
+        l.LOGGER.critical("Error during radio recording!")
+        raise e    
 
 def plot(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="", save_plot="", title=None):
     """Helper for plotting functions."""

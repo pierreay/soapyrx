@@ -147,20 +147,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
     frequency (e.g., 2.4e9). SAMP is the sampling rate (e.g., 4e6).
 
     """
-    # Radio block.
-    try:
-        with soapysdr_lib.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
-            # Initialize the driver.
-            rad.open()
-            # Perform the recording.
-            rad.record()
-            # Save the radio capture in temporary buffer.
-            rad.accept()
-            # Get the radio capture.
-            sig = rad.get_signal()
-    except Exception as e:
-        l.LOGGER.critical("Error during radio recording!")
-        raise e
+    sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain, save_sig=save_sig, save_plot=save_plot, plot_flag=plot_flag, cut_flag=cut_flag, dir=DIR)
     helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
     
 @cli.command()
