@@ -45,7 +45,24 @@ def plot(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="",
             np.save(save_sig, sig)
     except Exception as e:
         l.LOGGER.critical("Error during signal processing!")
-        raise e    
+        raise e
+
+def server_start(idx, freq, samp_rate, duration, gain, dir):
+    """Helper for starting a server."""
+    # Initialize the radio individually.
+    try:
+        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, dir=dir, gain=gain)
+    except Exception as e:
+        l.LOGGER.critical("Error during radio initialization!")
+        raise e
+    # Create a server.
+    with core.SoapyServer() as server:
+        # Add the radio.
+        server.register(rad)
+        # Initialize the driver.
+        server.open()
+        # Listen for commands from another process.
+        server.start()
 
 def phase_rot(trace):
     """Get the phase rotation of one or multiple traces."""

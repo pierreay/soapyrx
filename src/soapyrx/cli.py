@@ -147,20 +147,7 @@ def server_start(idx, freq, samp_rate, duration, gain):
     automatically, hence, use Bash to launch it in the background.
 
     """
-    # Initialize the radio individually.
-    try:
-        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, dir=DIR, gain=gain)
-    except Exception as e:
-        l.LOGGER.critical("Error during radio initialization!")
-        raise e
-    # Create a server.
-    with core.SoapyServer() as server:
-        # Add the radio.
-        server.register(rad)
-        # Initialize the driver.
-        server.open()
-        # Listen for commands from another process.
-        server.start()
+    helpers.server_start(idx, freq, samp_rate, duration, gain, DIR)
 
 @cli.command()
 def server_stop():
