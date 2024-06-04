@@ -4,10 +4,14 @@ An SDR receiver built on [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR
 
 The scope of this tool is to handle signal acquisition from an SDR. Using
 SoapySDR as backend, it supports every SDR supported by the latter -- as long
-as the corresponding module is installed. SoapyRX can record from multiple SDRs
-in parallel, display basic signal visualization, as well as perform
-single-signal operations (/e.g./, cut). It not meant to process datasets (/e.g./,
-conversion, alignment, normalization).
+as the corresponding module is installed. It not meant to process datasets of
+signals (/e.g./, conversion, alignment, normalization).
+
+- Features ::
+  - Record from multiple SDRs in parallel.
+  - Display basic signal visualization (amplitude, phase rotation, time-domain, frequency-domain).
+  - Perform single-signal operations (/e.g./, interactive cutting).
+  - Use complex numbers (I/Q) for storage (=numpy.complex64=).
 
 * Installation
 
