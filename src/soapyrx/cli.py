@@ -216,8 +216,6 @@ def record(freq, samp_rate, duration, save, norm, amplitude, phase, plot_flag, c
         libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot()
     # Save the signal as requested.
     if save != "":
-        sig = analyze.process_iq(sig, amplitude=amplitude, phase=phase, norm=norm, log=True)
-        l.LOGGER.info("Additional save of recorded signal to: {}".format(save))
         np.save(save, sig)
 
 @cli.command()
@@ -250,9 +248,7 @@ def client(save, norm, amplitude, phase, plot_flag):
     libplot.plot_time_spec_sync_axis([sig], comp=comp, cond=plot_flag, xtime=False)
     # Save the signal as requested.
     if save != "":
-        sig = analyze.process_iq(sig, amplitude=amplitude, phase=phase, norm=norm, log=True)
-        l.LOGGER.info("Additional save of recorded signal to: {}".format(save))
-        np.save(save, sig)
+         np.save(save, sig)
 
 @cli.command()
 def debug():
