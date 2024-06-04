@@ -12,7 +12,7 @@ from matplotlib.widgets import Button, Slider
 from scipy import signal
 
 # Internal import.
-from soapyrx import analyze
+from soapyrx import helpers
 
 # * Global variables
 
@@ -100,9 +100,10 @@ class SignalQuadPlot():
         # Compute the duration of the signal if possible.
         if sr is not None:
             self.duration = len(sig) / sr
-        # Compute the number of columns and rows depending on the signal type.
+        # Compute the number of columns and rows.
+        # NOTE: ncols can be set to 1 if signal is amplitude only.
         self.nrows = 2
-        self.ncols = 2 if analyze.is_iq(self.sig) else 1
+        self.ncols = 2
         # Use a shared x-axis only if duration is available for time vector
         # creation.
         if self.duration is not None:
@@ -115,7 +116,7 @@ class SignalQuadPlot():
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Compute the amplitude.
-        sig = analyze.get_amplitude(self.sig)
+        sig = np.abs(self.sig)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_ampl_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_ampl_time, sig), dtype=sig.dtype)
@@ -137,7 +138,7 @@ class SignalQuadPlot():
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Compute phase rotation:
-        sig = analyze.get_phase_rot(self.sig)
+        sig = helpers.phase_rot(self.sig)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_phase_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_phase_time, sig), dtype=sig.dtype)
@@ -275,7 +276,7 @@ class PlotShrink():
         self.axampl.clear()
         self.axspec.clear()
         # Plot the signal using new lower bound.
-        self.axampl.plot(analyze.get_amplitude(self.signal[self.lb:self.ub]))
+        self.axampl.plot(np.abs(self.signal[self.lb:self.ub]))
         self.axspec.specgram(self.signal[self.lb:self.ub], NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
         # Redraw the figure.
         self.fig.canvas.draw()
@@ -298,7 +299,7 @@ class PlotShrink():
         """Start the plot for interactive shrink."""
         # Create the figure and plot the signal.
         self.fig, (self.axampl, self.axspec) = plt.subplots(nrows=2, ncols=1)
-        self.axampl.plot(analyze.get_amplitude(self.signal))
+        self.axampl.plot(np.abs(self.signal))
         self.axampl.set_xlabel('Sample [#]')
         self.axampl.set_ylabel('Amplitude')
         self.axspec.specgram(self.signal, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")

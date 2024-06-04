@@ -25,7 +25,6 @@ from soapyrx import logger as l
 from soapyrx import helpers
 from soapyrx import plotters
 from soapyrx import core
-from soapyrx import analyze
 
 # * Global variables
 

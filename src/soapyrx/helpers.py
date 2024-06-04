@@ -1,4 +1,4 @@
-"""Helpers functions wrapping classes."""
+"""Helpers functions wrapping classes or doing small computations."""
 
 import numpy as np
 
@@ -46,3 +46,28 @@ def plot(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="",
     except Exception as e:
         l.LOGGER.critical("Error during signal processing!")
         raise e    
+
+def phase_rot(trace):
+    """Get the phase rotation of one or multiple traces."""
+    dtype_in = np.complex64
+    dtype_out = np.float32
+    assert type(trace) == np.ndarray
+    assert trace.dtype == dtype_in
+    if trace.ndim == 1:
+        # NOTE: Phase rotation from expe/240201/56msps.py without filter:
+        # Compute unwraped (remove modulos) instantaneous phase.
+        trace = np.unwrap(np.angle(trace))
+        # Set the signal relative to 0.
+        trace = [trace[i] - trace[0] for i in range(len(trace))]
+        # Compute the phase rotation of instantenous phase.
+        # NOTE: Manually add first [0] sample.
+        trace = [0] + [trace[i] - trace[i - 1] for i in range(1, len(trace), 1)]
+        # Convert back to np.ndarray.
+        trace = np.array(trace, dtype=dtype_out)
+        assert trace.dtype == dtype_out
+        return trace
+    elif trace.ndim == 2:
+        trace_rot = np.empty_like(trace, dtype=dtype_out)
+        for ti, tv in enumerate(trace):
+            trace_rot[ti] = get_phase_rot(tv)
+        return trace_rot
