@@ -121,8 +121,8 @@ def plot(file, cut_flag, save_sig, save_plot, freq, samp):
 @click.argument("idx", type=int)
 @click.argument("freq", type=float)
 @click.argument("samp_rate", type=float)
-@click.option("--duration", type=float, default=0.5, help="Duration of the recording.")
-@click.option("--gain", type=int, default=76, help="Gain for the SDR.")
+@click.option("--duration", type=float, default=1, help="Duration of the recording [s].")
+@click.option("--gain", type=int, default=0, help="Gain for the SDR [dB].")
 def server_start(idx, freq, samp_rate, duration, gain):
     """Start a radio server.
 
