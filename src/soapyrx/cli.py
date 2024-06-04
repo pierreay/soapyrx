@@ -185,12 +185,10 @@ def plot_file(samp_rate, file, cut_flag, save, save_plot, freq):
 @click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
 @click.option("--gain", type=int, default=76, help="Gain for the SDR.")
 def record(freq, samp_rate, duration, save, norm, amplitude, phase, plot_flag, cut_flag, gain):
-    """Record a trace without any instrumentation.
+    """Record a signal.
 
-    It will automatically use the first found radio with ID 0.
-
-    FREQ is the center frequency of the recording.
-    SAMP_RATE is the sampling rate used for the recording.
+    It will automatically use the first found radio. FREQ is the center
+    frequency (e.g., 2.4e9). SAMP_RATE is the sampling rate (e.g., 4e6).
 
     """
     rad_id=0
