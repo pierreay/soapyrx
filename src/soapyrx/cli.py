@@ -176,25 +176,21 @@ def plot_file(samp_rate, file, cut_flag, save, save_plot, freq):
 @cli.command()
 @click.argument("freq", type=float)
 @click.argument("samp_rate", type=float)
-@click.option("--duration", type=float, default=0.5, help="Duration of the recording.")
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
-@click.option("--norm/--no-norm", default=False, help="Normalize the recording before saving.")
-@click.option("--amplitude/--no-amplitude", default=False, help="Extract only the amplitude of the signal.")
-@click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
+@click.option("--duration", type=float, default=1, help="Duration of the recording [s].")
+@click.option("--gain", type=int, default=0, help="Gain for the SDR [dB].")
+@click.option("--save", "save_path", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 @click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
-@click.option("--gain", type=int, default=76, help="Gain for the SDR.")
-def record(freq, samp_rate, duration, save, norm, amplitude, phase, plot_flag, cut_flag, gain):
+def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
     """Record a signal.
 
     It will automatically use the first found radio. FREQ is the center
     frequency (e.g., 2.4e9). SAMP_RATE is the sampling rate (e.g., 4e6).
 
     """
-    rad_id=0
-    # Initialize the radio as requested.
+    # Radio block.
     try:
-        with soapysdr_lib.MySoapySDR(fs=samp_rate, freq=freq, idx=rad_id, duration=duration, dir=DIR, gain=gain) as rad:
+        with soapysdr_lib.MySoapySDR(fs=samp_rate, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
@@ -205,18 +201,24 @@ def record(freq, samp_rate, duration, save, norm, amplitude, phase, plot_flag, c
             # Save the radio capture outside the radio for an additional save or plot.
             sig = rad.get_signal()
     except Exception as e:
-        l.log_n_exit("Error during radio instrumentation", 1, e)
-    # Cut the signal as requested.
-    if cut_flag is True:
-        pltshrk = libplot.PlotShrink(sig)
-        pltshrk.plot()
-        sig = pltshrk.get_signal_from(sig)
-    # Plot the signal as requested.
-    if plot_flag:
-        libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot()
-    # Save the signal as requested.
-    if save != "":
-        np.save(save, sig)
+        l.LOGGER.critical("Error during radio recording!")
+        raise e
+    # Simple visualization and processing block.
+    try:
+        # Cut the signal as requested.
+        if cut_flag is True:
+            pltshrk = libplot.PlotShrink(sig, sr=samp_rate, fc=freq)
+            pltshrk.plot()
+            sig = pltshrk.get_signal_from(sig)
+        # Plot the signal as requested.
+        if plot_flag:
+            libplot.SignalQuadPlot(sig, sr=samp_rate, fc=freq).plot()
+        # Save the signal as requested.
+        if save_path != "":
+            np.save(save_path, sig)
+    except Exception as e:
+        l.LOGGER.critical("Error during signal processing!")
+        raise e
 
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
