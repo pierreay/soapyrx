@@ -6,8 +6,8 @@ The scope of this tool is to handle signal acquisition from an SDR. Using
 SoapySDR as backend, it supports every SDR supported by the latter -- as long
 as the corresponding module is installed. SoapyRX can record from multiple SDRs
 in parallel, display basic signal visualization, as well as perform
-single-signal operations (/e.g./, conversion, cut). It not meant to process
-datasets (/e.g./, alignment, normalization).
+single-signal operations (/e.g./, cut). It not meant to process datasets (/e.g./,
+conversion, alignment, normalization).
 
 * Installation
 
