@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 from scipy import signal
 
-from soapyrx import log as l
+from soapyrx import logger as l
 
 # Enumeration of components type of a signal.
 CompType = Enum('CompType', ['AMPLITUDE', 'PHASE', 'PHASE_ROT'])

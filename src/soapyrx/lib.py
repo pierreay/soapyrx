@@ -11,7 +11,7 @@ from threading import Thread
 
 import SoapySDR
 
-from soapyrx import log as l
+from soapyrx import logger as l
 
 # Path of the FIFO file used between SoapyServer and SoapyClient.
 # client -> FIFO -> server

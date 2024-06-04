@@ -19,10 +19,11 @@ import click
 import SoapySDR
 
 # Internal imports.
+from soapyrx import logger as l
+from soapyrx import helpers
+from soapyrx import plotters
 from soapyrx import lib as soapysdr_lib
 from soapyrx import analyze
-from soapyrx import log as l
-from soapyrx import plot as libplot
 
 # * Global variables
 
@@ -110,26 +111,6 @@ def quit():
     """
     soapysdr_lib.SoapyClient().quit()
 
-def plot_helper(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="", save_plot="", title=None):
-    """Helper for plotting functions."""
-    # Simple visualization and processing block.
-    try:
-        # Cut the signal as requested.
-        if cut_flag is True:
-            pltshrk = libplot.PlotShrink(sig, sr=samp, fc=freq)
-            pltshrk.plot()
-            sig = pltshrk.get_signal_from(sig)
-        # Plot the signal as requested.
-        if plot_flag:
-            libplot.SignalQuadPlot(sig, sr=samp, fc=freq).plot(save=save_plot, title=title)
-        # Save the signal as requested.
-        if save_sig != "":
-            l.LOGGER.info("Save recording: {}".format(save_sig))
-            np.save(save_sig, sig)
-    except Exception as e:
-        l.LOGGER.critical("Error during signal processing!")
-        raise e    
-
 @cli.command()
 @click.argument("file", type=click.Path())
 @click.option("--cut/--no-cut", "cut_flag", default=False, help="Cut the plotted signal.")
@@ -148,7 +129,7 @@ def plot(file, cut_flag, save_sig, save_plot, freq, samp):
         sig = np.load(file)
     except Exception as e:
         l.LOGGER.critical("Cannot load signal from disk: {}".format(e)); exit(1)
-    plot_helper(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=True, save_sig=save_sig, save_plot=save_plot, title=file)
+    helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=True, save_sig=save_sig, save_plot=save_plot, title=file)
 
 @cli.command()
 @click.argument("freq", type=float)
@@ -180,7 +161,7 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
     except Exception as e:
         l.LOGGER.critical("Error during radio recording!")
         raise e
-    plot_helper(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
+    helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
     
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
@@ -209,7 +190,7 @@ def client(save, norm, amplitude, phase, plot_flag):
     sig = load_raw_trace(dir=DIR, rad_idx=rad_id, rec_idx=0, log=False)
     # Plot the signal as requested [amplitude by default].
     comp = analyze.CompType.PHASE if phase is True else analyze.CompType.AMPLITUDE
-    libplot.plot_time_spec_sync_axis([sig], comp=comp, cond=plot_flag, xtime=False)
+    plotters.plot_time_spec_sync_axis([sig], comp=comp, cond=plot_flag, xtime=False)
     # Save the signal as requested.
     if save != "":
          np.save(save, sig)
