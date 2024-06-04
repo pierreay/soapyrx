@@ -388,12 +388,15 @@ class MySoapySDR():
                 # variable.
                 readStream_len = min(samples - len(self.rx_signal_candidate), rx_buff_len)
                 assert readStream_len <= len(self.rx_buff)
-                l.LOGGER.debug("Start SoapySDR readStream()...")
+                l.LOGGER.debug("[{}:{}] Read SoapySDR stream...".format(type(self).__name__, self.idx))
                 sr = self.sdr.readStream(self.rx_stream, [self.rx_buff], readStream_len, timeoutUs=int(1e7))
+                l.LOGGER.debug("[{}:{}] Read stream: ret:{} flags:{:b}".format(type(self).__name__, self.idx, sr.ret, sr.flags))
+                # Recording at requested size, e.g., using USRP.
                 if sr.ret == readStream_len and sr.flags == 1 << 2:
-                    # Only save part of `RX buffer' containing the captured
-                    # signal inside the `Candidate buffer'.
                     self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:readStream_len]))
+                # Recording smaller than requested, e.g., using HackRF (smaller buffer).
+                elif sr.ret > 0 and sr.flags == 0:
+                    self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:sr.ret]))
             if log is True:
                 l.LOGGER.info("[{}:{}] Recording finished!".format(type(self).__name__, self.idx, duration))
         else:
