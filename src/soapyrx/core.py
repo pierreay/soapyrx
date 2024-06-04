@@ -4,6 +4,10 @@ Allows to use a single or multiple SDRs in parallel using threads.
 
 """
 
+# TODO: Delete save code
+# TODO: Allows client to used reinit
+# TODO: Refactor TODOs for debug logging
+
 # * Importation
 
 # Standard import.
