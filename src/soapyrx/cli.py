@@ -175,9 +175,9 @@ def client(save, norm, amplitude, phase, plot_flag):
     # NOTE: Not especially efficient since we use the disk as buffer here,
     # but the SDR client cannot receive data from the SDR server currently.
     sig = load_raw_trace(dir=DIR, rad_idx=rad_id, rec_idx=0, log=False)
-    # Plot the signal as requested [amplitude by default].
-    comp = analyze.CompType.PHASE if phase is True else analyze.CompType.AMPLITUDE
-    plotters.plot_time_spec_sync_axis([sig], comp=comp, cond=plot_flag, xtime=False)
+    # Plot the signal as requested.
+    if plot_flag is True:
+        plotters.SignalQuadPlot(sig).plot()
     # Save the signal as requested.
     if save != "":
          np.save(save, sig)
