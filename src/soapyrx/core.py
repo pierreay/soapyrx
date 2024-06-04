@@ -40,6 +40,14 @@ POLLING_INTERVAL = 1e-6
 # * Classes
 
 class SoapyServer():
+    # Available commands on server-side.
+    CMDS = {"record":       self.record,
+            "accept":       self.accept,
+            "save":         self.save,
+            "disable":      self.disable,
+            "record_start": self.record_start,
+            "record_stop":  self.record_stop,
+            "get":          self.get}
 
     def __enter__(self):
         return self
@@ -207,11 +215,9 @@ class SoapyServer():
                 cmd = fifo.read()
                 if len(cmd) > 0:
                     l.LOGGER.debug("[server] FIFO -> {}".format(cmd))
-                    # Available commands on server-side.
-                    cmds = {"record": self.record, "accept": self.accept, "save": self.save, "disable": self.disable, "record_start": self.record_start, "record_stop": self.record_stop}
                     # Execute the received command and acknowledge its execution.
-                    if cmd in cmds:
-                        cmds[cmd]()
+                    if cmd in CMDS:
+                        CMDS[cmd]()
                         __ack__(cmd)
                     elif cmd == "quit":
                         l.LOGGER.info("[{}:{}] Server shutdown!".format(type(self).__name__, os.getpid()))
