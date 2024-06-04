@@ -154,11 +154,10 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
     
 @cli.command()
 @click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
-@click.option("--norm/--no-norm", default=False, help="Normalize the recording before saving.")
 @click.option("--amplitude/--no-amplitude", default=False, help="Extract only the amplitude of the signal.")
 @click.option("--phase/--no-phase", default=False, help="Extract only the phase of the signal.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
-def client(save, norm, amplitude, phase, plot_flag):
+def client(save, amplitude, phase, plot_flag):
     """Record a signal by connecting to the running and configured SDR server.
 
     It will automatically use the first found radio with ID 0.
