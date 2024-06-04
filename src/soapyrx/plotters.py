@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 from scipy import signal
 
-# Internal imports.
+# Internal import.
 from soapyrx import analyze
 
 # * Global variables

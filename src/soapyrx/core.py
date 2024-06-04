@@ -1,17 +1,27 @@
-"""Implement SDR classes using SoapySDR. Allows to use a single or multiple
-SDRs in parallel using threads."""
+"""SDR classes using SoapySDR as backend.
 
+Allows to use a single or multiple SDRs in parallel using threads.
+
+"""
+
+# * Importation
+
+# Standard import.
 import time
 from time import sleep, time
 import os
-import errno
 from os import path
-import numpy as np
+import errno
 from threading import Thread
 
+# External import.
+import numpy as np
 import SoapySDR
 
+# Internal import.
 from soapyrx import logger as l
+
+# * Global variables
 
 # Path of the FIFO file used between SoapyServer and SoapyClient.
 # client -> FIFO -> server
@@ -24,6 +34,8 @@ FIFO_PATH_CLIENT = "/tmp/soapysdr_client.fifo"
 # consume too much CPU (here, 5%) but small enough to not introduce noticeable
 # delay to the recording.
 POLLING_INTERVAL = 1e-6
+
+# * Classes
 
 class SoapyServer():
 

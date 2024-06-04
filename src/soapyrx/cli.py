@@ -20,7 +20,7 @@ from scipy import signal
 import click
 import SoapySDR
 
-# Internal imports.
+# Internal import.
 from soapyrx import logger as l
 from soapyrx import helpers
 from soapyrx import plotters
