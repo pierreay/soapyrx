@@ -4,8 +4,6 @@ Allows to use a single or multiple SDRs in parallel using threads.
 
 """
 
-# TODO: Refactor TODOs for debug logging
-
 # * Importation
 
 # Standard import.
@@ -50,7 +48,7 @@ class SoapyServer():
         self.close()
 
     def __init__(self):
-        l.LOGGER.debug("SoapyServer.__init__()")
+        l.LOGGER.debug("[{}] Initialization...".format(type(self).__name__))
         # List of registered SDRs.
         self.sdrs = []
         # List of registered SDRs' indexes.
@@ -78,21 +76,21 @@ class SoapyServer():
             l.LOGGER.debug("[{}] FIFO <- {} bytes".format(type(self).__name__, sys.getsizeof(data)))    
 
     def register(self, sdr):
-        l.LOGGER.debug("SoapyServer.register(idx={})".format(sdr.idx))
+        l.LOGGER.debug("[{}] Register: idx={}".format(type(self).__name__, sdr.idx))
         # Check if SDR is not already initialized.
         if sdr.idx in self.registered_idx:
-            raise Exception("The same SDR is registered twice!")
+            raise Exception("Same SDR is registered twice!")
         # Proceed to the registration.
         self.sdrs.append(sdr)
         self.registered_idx.append(sdr.idx)
 
     def open(self):
-        l.LOGGER.debug("SoapyServer.open()")
+        l.LOGGER.debug("[{}] Open all SDRs...".format(type(self).__name__))
         for sdr in self.sdrs:
             sdr.open()
 
     def close(self):
-        l.LOGGER.debug("SoapyServer.close()")
+        l.LOGGER.debug("[{}] Close all SDRs...".format(type(self).__name__))
         for sdr in self.sdrs:
             sdr.close()
         if path.exists(PATH_FIFO_C2S_CMD):
@@ -110,14 +108,13 @@ class SoapyServer():
         Start recording for a pre-configured amount of time.
 
         """
-        l.LOGGER.debug("SoapyServer.record_start().enter")
+        l.LOGGER.debug("[{}] Start recording threads for all SDRs...".format(type(self).__name__))
         # Use multi-threaded implementation.
-        l.LOGGER.debug("Start recording threads...")
         self.thr = [None] * len(self.sdrs)
         for idx, sdr in enumerate(self.sdrs):
             self.thr[idx] = Thread(target=sdr.record, args=(None,))
             self.thr[idx].start()
-        l.LOGGER.debug("SoapyServer.record_start().exit")
+        l.LOGGER.debug("[{}] Recording threads started for all SDRs!".format(type(self).__name__))
 
     def record_stop(self):
         """Asynchronous version of record().
@@ -125,11 +122,10 @@ class SoapyServer():
         Wait recording after threads stopped.
 
         """
-        l.LOGGER.debug("SoapyServer.record_stop().enter")
-        l.LOGGER.debug("Wait recording threads...")
+        l.LOGGER.debug("[{}] Wait recording threads for all SDRs...".format(type(self).__name__))
         for idx, sdr in enumerate(self.sdrs):
             self.thr[idx].join()
-        l.LOGGER.debug("SoapyServer.record_stop().exit")
+        l.LOGGER.debug("[{}] Recording threads finished for all SDRs!".format(type(self).__name__))
 
     def record(self, duration = None):
         """Perform a recording of DURATION seconds.
@@ -138,31 +134,28 @@ class SoapyServer():
         recordings finished and all threads join.
 
         """
-        l.LOGGER.debug("SoapyServer.record(duration={}).enter".format(duration))
         # Use multi-threaded implementation.
         if len(self.sdrs) > 1:
-            # XXX: Should we switch to processes instead of threads to counter
-            # the GIL? But maybe it can be slower to spawn?
-            l.LOGGER.debug("Start threads for multiple SDRs recording...")
+            l.LOGGER.debug("[{}] Start recording threads for all SDRs...".format(type(self).__name__))
             thr = [None] * len(self.sdrs)
             for idx, sdr in enumerate(self.sdrs):
                 thr[idx] = Thread(target=sdr.record, args=(duration,))
                 thr[idx].start()
-            l.LOGGER.debug("Wait threads for multiple SDRs recording...")
+            l.LOGGER.debug("[{}] Wait recording threads for all SDRs...".format(type(self).__name__))
             for idx, sdr in enumerate(self.sdrs):
                 thr[idx].join()
+            l.LOGGER.debug("[{}] Recording threads finished for all SDRs!".format(type(self).__name__))
         # Don't use multi-threading if only one recording is needed.
         elif len(self.sdrs) == 1:
             self.sdrs[0].record(duration)
-        l.LOGGER.debug("SoapyServer.record(duration={}).exit".format(duration))
 
     def accept(self):
-        l.LOGGER.debug("SoapyServer.accept()")
+        l.LOGGER.debug("[{}] Accept recording for all SDRs...".format(type(self).__name__))
         for sdr in self.sdrs:
             sdr.accept()
 
     def reinit(self):
-        l.LOGGER.debug("SoapyServer.reinit()")
+        l.LOGGER.debug("[{}] Reinitialize all SDRs...".format(type(self).__name__))
         for sdr in self.sdrs:
             sdr.reinit()
 
@@ -211,7 +204,7 @@ class SoapyServer():
         __create_fifo()
         # NOTE: Put logging before FIFO is opened before its wait for a client
         # to return.
-        l.LOGGER.info("[{}:{}] Server started!".format(type(self).__name__, os.getpid()))
+        l.LOGGER.info("[{}] Server started!".format(type(self).__name__))
         # Open the FIFO.
         with open(PATH_FIFO_C2S_CMD, "r") as fifo:
             l.LOGGER.debug("[{}] Opened FIFO (r): {}".format(type(self).__name__, PATH_FIFO_C2S_CMD))
@@ -225,7 +218,7 @@ class SoapyServer():
                         cmds[cmd]()
                         self.__ack__(cmd)
                     elif cmd == "stop":
-                        l.LOGGER.info("[{}:{}] Server shutdown!".format(type(self).__name__, os.getpid()))
+                        l.LOGGER.info("[{}] Server shutdown!".format(type(self).__name__))
                         break
                 # Smart polling.
                 sleep(POLLING_INTERVAL)
@@ -283,7 +276,7 @@ class SoapyRadio():
     # * Static functions.
 
     def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, gain = 0):
-        l.LOGGER.debug("SoapyRadio.__init__(fs={},freq={},idx={},enabled={},duration={},gain={})".format(fs, freq, idx, enabled, duration, gain))
+        l.LOGGER.debug("[{}:{}] Initialization: fs={} freq={} enabled={} duration={} gain={}".format(type(self).__name__, idx, fs, freq, enabled, duration, gain))
         assert gain >= 0, "Gain should be positive!"
         # NOTE: Automatically convert floats to integers (allows using scentific notation, e.g. e6 or e9).
         self.fs = int(fs)
@@ -347,7 +340,7 @@ class SoapyRadio():
         assert type(rx_buff_len_exp) == int, "Length of RX buffer should be an integer!"
         assert rx_buff_len_exp <= self.RX_BUFF_LEN_EXP_UB, "Bad RX buffer exponent value!"
         assert rx_buff_len_exp >= self.RX_BUFF_LEN_EXP_LB, "Bad RX buffer exponent value!"
-        l.LOGGER.debug("Allocate 2^{} dtype-elements in memory for RX buffer...".format(rx_buff_len_exp))
+        l.LOGGER.debug("[{}:{}] Allocate memory for RX buffer: 2^{} dtype-elements...".format(type(self).__name__, self.idx, rx_buff_len_exp))
         self.rx_buff = np.array([0] * pow(2, rx_buff_len_exp), np.complex64)
 
     def _rx_buff_deinit(self):
@@ -376,7 +369,7 @@ class SoapyRadio():
     def open(self):
         # Initialize the SoapySDR streams.
         if self.enabled:
-            l.LOGGER.debug("[{}:{}] Setup and active SoapySDR stream".format(type(self).__name__, self.idx))
+            l.LOGGER.debug("[{}:{}] Setup and activate SoapySDR stream".format(type(self).__name__, self.idx))
             # From SoapySDR/include/SoapySDR/Device.h:
             # - "CF32" - complex float32 (8 bytes per element)
             # - "CS16" - complex int16   (4 bytes per element)
@@ -389,10 +382,9 @@ class SoapyRadio():
 
     def close(self):
         if self.rx_stream is not None:
-            l.LOGGER.debug("SoapyRadio(idx={}).close().enter".format(self.idx))
+            l.LOGGER.debug("[{}:{}] Deactivate and close SoapySDR stream".format(type(self).__name__, self.idx))
             self.sdr.deactivateStream(self.rx_stream)
             self.sdr.closeStream(self.rx_stream)
-            l.LOGGER.debug("SoapyRadio(idx={}).close().leave".format(self.idx))
 
     def record(self, duration = None, log = True):
         # Choose default duration configured during __init__ if None is given.
@@ -407,7 +399,7 @@ class SoapyRadio():
             # Number of samples that can fit in the RX buffer.
             rx_buff_len = len(self.rx_buff)
             if log is True:
-                l.LOGGER.info("[{}:{}] Start recording during {:.2}s...".format(type(self).__name__, self.idx, duration))
+                l.LOGGER.info("[{}:{}] Start recording: {:.2}s...".format(type(self).__name__, self.idx, duration))
             while len(self.rx_signal_candidate) < samples:
                 # Number of samples that the readStream() function will try to
                 # read from the SDR. It is equal to the minimum between: 1)
@@ -435,14 +427,14 @@ class SoapyRadio():
 
     def accept(self):
         if self.enabled:
-            l.LOGGER.debug("SoapyRadio(idx={}).accept()".format(self.idx))
+            l.LOGGER.debug("[{}:{}] Accept recording!".format(type(self).__name__, self.idx))
             self.accepted = True
             self.rx_signal = np.concatenate((self.rx_signal, self.rx_signal_candidate))
 
     def reinit(self):
         """Re-initialize the recording state and buffers such that a new
         recording can occur."""
-        l.LOGGER.debug("re-initialization")
+        l.LOGGER.debug("[{}:{}] Reinitialization!".format(type(self).__name__, self.idx))
         self.accepted = False
         # Delete the signals since buffers can be large.
         if self.rx_signal is not None:
@@ -454,7 +446,7 @@ class SoapyRadio():
 
     def disable(self):
         """Disable the radio."""
-        l.LOGGER.info("disable radio #{}".format(self.idx))
+        l.LOGGER.info("[{}:{}] Disabling!".format(type(self).__name__, self.idx))
         self.enabled = False
 
     def get(self):
@@ -479,7 +471,7 @@ class SoapyClient():
     STUB_WAIT = 0.5
 
     def __init__(self, enabled = True):
-        l.LOGGER.debug("Initialize a SoapySDR client... (enabled={})".format(enabled))
+        l.LOGGER.debug("[{}] Initialization: enabled={}".format(type(self).__name__, enabled))
         self.enabled = enabled
 
     def __cmd__(self, cmd):
@@ -488,7 +480,7 @@ class SoapyClient():
         # is to open/close/sleep for each commands. Otherwise, the commands
         # arrived concatenated at the reader process.
         if self.enabled is True:
-            l.LOGGER.debug("[client] FIFO <- {}".format(cmd))
+            l.LOGGER.debug("[{}] FIFO <- {}".format(type(self).__name__, cmd))
             with open(PATH_FIFO_C2S_CMD, "w") as fifo:
                 fifo.write(cmd)
             sleep(0.1)
@@ -497,22 +489,22 @@ class SoapyClient():
         """Wait for the command CMD to complete."""
         if self.enabled is True:
             time_start = time()
-            l.LOGGER.debug("[client] Waiting for: {}".format(cmd))
+            l.LOGGER.debug("[{}] Waiting: {}".format(type(self).__name__, cmd))
             with open(PATH_FIFO_S2C_CMD, "r") as fifo:
-                l.LOGGER.debug("[client] Opened FIFO (r): {}".format(PATH_FIFO_S2C_CMD))
+                l.LOGGER.debug("[{}] Opened FIFO (r): {}".format(type(self).__name__, PATH_FIFO_S2C_CMD))
                 while True:
                     ack = fifo.read()
                     if len(ack) > 0:
-                        l.LOGGER.debug("[client] FIFO -> {}".format(ack))
+                        l.LOGGER.debug("[{}] FIFO -> {}".format(type(self).__name__, ack))
                         if ack == "ack:{}".format(cmd):
-                            l.LOGGER.debug("[client] Wait completed!")
+                            l.LOGGER.debug("[{}] Wait completed!".format(type(self).__name__))
                             break
                     sleep(POLLING_INTERVAL)
                     # Timeout for waiting a command.
                     if (time() - time_start) > 3: # [s]
                         raise Exception("Timeout exceeded!")
         else:
-            l.LOGGER.debug("Waiting stub for disabled SoapySDR client by sleeping {}s".format(self.STUB_WAIT))
+            l.LOGGER.debug("[{}] Waiting stub because disabled: sleep {}s".format(type(self).__name__, self.STUB_WAIT))
             sleep(self.STUB_WAIT)
 
     def __recv__(self):

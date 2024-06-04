@@ -103,7 +103,7 @@ def client(save, plot_flag):
         plotters.SignalQuadPlot(sig).plot()
     # Save the signal as requested.
     if save != "":
-        l.LOGGER.info("Save recording: {}".format(save_sig))
+        l.LOGGER.info("Save recording: {}".format(save))
         np.save(save, sig)
 
 # * Functions for computations
