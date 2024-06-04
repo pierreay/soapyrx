@@ -84,11 +84,11 @@ def listen(freq, samp_rate, duration, id, gain):
 
     """
     # Initialize the radio as requested.
-    with soapysdr_lib.MySoapySDRs() as rad:
+    with soapysdr_lib.SoapyServer() as rad:
         # Initialize the radios individually.
         try:
             if id != -1:
-                rad_id = soapysdr_lib.MySoapySDR(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
+                rad_id = soapysdr_lib.SoapyRadio(samp_rate, freq, id, duration=duration, dir=DIR, gain=gain)
                 rad.register(rad_id)
         except Exception as e:
             l.log_n_exit("Error during radio initialization", 1, e)
@@ -108,7 +108,7 @@ def quit():
     it, possibly letting the SDR driver in a bad state.
 
     """
-    soapysdr_lib.MySoapySDRsClient().quit()
+    soapysdr_lib.SoapyClient().quit()
 
 @cli.command()
 @click.argument("file", type=click.Path())
@@ -162,7 +162,7 @@ def record(freq, samp_rate, duration, gain, save_path, plot_flag, cut_flag):
     """
     # Radio block.
     try:
-        with soapysdr_lib.MySoapySDR(fs=samp_rate, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
+        with soapysdr_lib.SoapyRadio(fs=samp_rate, freq=freq, idx=0, duration=duration, dir=DIR, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
@@ -205,12 +205,12 @@ def client(save, norm, amplitude, phase, plot_flag):
 
     """
     rad_id=0
-    rad = soapysdr_lib.MySoapySDRsClient()
+    rad = soapysdr_lib.SoapyClient()
     # Record and save the signal.
     rad.record()
     rad.accept()
     rad.save()
-    # NOTE: MySoapySDRsClient.save() is not synchronous, then wait enough for signal to be saved.
+    # NOTE: SoapyClient.save() is not synchronous, then wait enough for signal to be saved.
     time.sleep(1)
     # NOTE: Following code duplicated from `record()'.
     # Save the radio capture outside the radio for an additional save or plot.
