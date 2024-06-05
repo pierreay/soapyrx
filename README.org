@@ -4,8 +4,8 @@ An SDR receiver built on [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR
 
 The scope of this tool is to handle signal acquisition from an SDR. Using
 SoapySDR as backend, it supports every SDR supported by the latter -- as long
-as the corresponding module is installed. It not meant to process datasets of
-signals (/e.g./, conversion, alignment, normalization).
+as the corresponding module is installed. It is not meant to process datasets
+of signals (/e.g./, conversion, alignment, normalization).
 
 - Features ::
   - One-shot record-plot-cut-save from the command-line.
