@@ -32,7 +32,7 @@ def discover():
     if not results:
         l.LOGGER.error("No detected SDR!"); exit(1)
 
-def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag):
+def record(freq, samp, duration, gain):
     """Helper for recording functions.
 
     Return the recorded signal.
@@ -47,8 +47,11 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag)
             rad.record()
             # Save the radio capture in temporary buffer.
             rad.accept()
+            sig = rad.get()
+            # Reinit the radio in case it is reused.
+            rad.reinit()
             # Return the radio capture.
-            return rad.get()
+            return sig
     except Exception as e:
         l.LOGGER.critical("Error during radio recording!")
         raise e    
@@ -90,21 +93,23 @@ def server_start(idx, freq, samp_rate, duration, gain):
         # Listen for commands from another process.
         server.start()
 
-def client(save, plot_flag):
-    """Helper for starting a client."""
+def client():
+    """Helper for recording using a client.
+
+    Return the recorded signal.
+
+    """
+    # Initialize the client.
     client = core.SoapyClient()
-    # Record and get the signal.
+    # Perform the recording.
     client.record()
+    # Save the radio capture in temporary buffer.
     client.accept()
     sig = client.get()
+    # Reinit the radio in case it is reused.
     client.reinit()
-    # Plot the signal as requested.
-    if plot_flag is True:
-        plotters.SignalQuadPlot(sig).plot()
-    # Save the signal as requested.
-    if save != "":
-        l.LOGGER.info("Save recording: {}".format(save))
-        np.save(save, sig)
+    # Return the radio capture.
+    return sig
 
 # * Functions for computations
 

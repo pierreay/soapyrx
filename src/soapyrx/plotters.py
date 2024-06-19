@@ -4,10 +4,13 @@
 
 # Standard import.
 from os import path
+from functools import partial
 
 # External import.
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
 from matplotlib.widgets import Button, Slider
 from scipy import signal
 
@@ -45,11 +48,17 @@ class SignalQuadPlot():
     sampling rate is specified, synchronized time-domain and frequency-domain
     will be enabled.
 
+    If data is directly passed to __init__, the plot will be only show/saved
+    once. If function to get the data is passed to __init__, the plot will be
+    updating in live.
+
     """
     # Signal variables.
 
-    # Signal to plot [np.ndarray].
-    sig = None
+    # Data of the signal to plot [np.ndarray].
+    sigdata = None
+    # Function to generate data of the signal to plot [partial].
+    sigfunc = None
     # Sampling rate of the plotted signal [Msps].
     sr = None
     # Center frequency of the plotted signal [Hz].
@@ -62,7 +71,7 @@ class SignalQuadPlot():
     # If we sould use a shared x axis accross plot [bool].
     sync = False
     # Initialized flag for plot_init() [bool].
-    plot_init_flag = False
+    init_flag = False
 
     # Plotting objects.
 
@@ -92,31 +101,29 @@ class SignalQuadPlot():
     # SOS filter that will be applied to the time-domain phase rotation signal before plotting.
     sos_filter_phase_time = None
 
-    def __init__(self, sig, sr = None, fc = None):
-        assert type(sig) == np.ndarray, "sig should be a numpy array (np.ndarray)!"
-        self.sig = sig
+    def __init__(self, sigdata, sigfunc = None, sr = None, fc = None):
+        # Save passed parameters.
+        self.sigdata = sigdata
+        self.sigfunc = sigfunc
         self.sr = sr
         self.fc = fc
-        # Compute the duration of the signal if possible.
-        if sr is not None:
-            self.duration = len(sig) / sr
+        # Use a shared x-axis only if duration is computable for time vector
+        # creation, hence, if sample rate is passed.
+        if self.sr is not None:
+            self.sync = True
         # Compute the number of columns and rows.
         # NOTE: ncols can be set to 1 if signal is amplitude only.
         self.nrows = 2
         self.ncols = 2
-        # Use a shared x-axis only if duration is available for time vector
-        # creation.
-        if self.duration is not None:
-            self.sync = True
-        # Example of creating filters that will be applied before plotting.
+        # NOTE: Example of creating filters that will be applied before plotting.
         # self.sos_filter_phase_time = signal.butter(1, 2e6, 'low', fs=self.sr, output='sos')
 
-    def __plot_amp(self):
+    def __plot_amp__(self):
         """Plot the amplitude of the signal in time and frequency domains in a vertical way."""
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Compute the amplitude.
-        sig = np.abs(self.sig)
+        sig = np.abs(self.sigdata)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_ampl_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_ampl_time, sig), dtype=sig.dtype)
@@ -129,16 +136,16 @@ class SignalQuadPlot():
             self.ax_ampl_time.plot(sig_filt)
             self.ax_ampl_time.set_xlabel(self.xlabel)
             self.ax_ampl_freq.set_xlabel(self.xlabel)
-        self.ax_ampl_freq.specgram(self.sig, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
+        self.ax_ampl_freq.specgram(self.sigdata, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
         self.ax_ampl_time.set_ylabel("Amplitude [ADC value]")
         self.ax_ampl_freq.set_ylabel("Frequency [Hz]")
 
-    def __plot_phase(self):
+    def __plot_phase__(self):
         """Plot the phase of the signal in time and frequency domains in a vertical way."""
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Compute phase rotation:
-        sig = helpers.phase_rot(self.sig)
+        sig = helpers.phase_rot(self.sigdata)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_phase_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_phase_time, sig), dtype=sig.dtype)
@@ -155,20 +162,72 @@ class SignalQuadPlot():
         self.ax_phase_time.set_ylabel("Phase rotation [Radian]")
         self.ax_phase_freq.set_ylabel("Frequency [Hz]")
 
-    def __plot_init_labels(self):
-        """Initialize the labels of the plot."""
-        if self.sync is True:
-            self.xlabel = "Time [s]"
-        else:
-            self.xlabel = "Sample [#]" if LATEX_FONT_ENABLED is False else "Sample [\\#]"
+    def __animate__(self, i):
+        """Matplotlib animation function wrapper.
 
-    def plot_init(self, title=None):
-        """Initialize plot without showing or saving.
+        1. Clear the axes of the figure.
+        2. Get the data to plot if needed.
+        3. Update plot initialization from data information
+        4. Plot the data.
+
+        """
+        self.ax_ampl_time.clear()
+        self.ax_ampl_freq.clear()
+        self.ax_phase_time.clear()
+        self.ax_phase_freq.clear()
+        if self.sigdata is None:
+            self.__sigdata_get__()
+        self.__init_from_sigdata__()
+        self.__sigdata_plot__()
+
+    def __sigdata_get__(self):
+        """Get data to plot from predefined function.
+
+        Call self.sigfunc() to get the signal stored in self.sigdata. Then,
+        compute additional variables related to sigdata.
+
+        """
+        assert self.sigdata is None, "Signal is already waiting to be plotted!"
+        self.sigdata = self.sigfunc()
+        assert type(self.sigdata) == np.ndarray, "sig should be a numpy array (np.ndarray)!"
+
+    def __init_from_sigdata__(self):
+        """Initialize figure with information from sigdata."""
+        # Compute the duration of the signal if possible.
+        if self.sr is not None:
+            self.duration = len(self.sigdata) / self.sr
+        # Generate a time vector if shared x-axis is required.
+        if self.sync is True:
+            self.t = np.linspace(0, self.duration, len(self.sigdata))
+            assert len(self.t) == len(self.sigdata), "Bad length matching between time vector and signal!"
+            # NOTE: For plt.specgram():
+            # - If Fs is not set, it will generates an x-axis of "len(self.sigdata) / 2".
+            # - If Fs is set, it will generates an x-axis of "duration * sampling rate".
+
+    def __sigdata_plot__(self):
+        """Plot currently registered data.
+
+        Data should have been registered using either __init__ or
+        __sigdata_get__ through self.sigfunc(). After plotting, data will be
+        deleted from the memory.
+
+        """
+        assert self.sigdata is not None, "No data has been registered in __init__ nor using self.sigfunc()!"
+        # Plotting.
+        self.__plot_amp__()
+        if self.ncols == 2:
+            self.__plot_phase__()
+        # Deletion.
+        del self.sigdata
+        self.sigdata = None
+
+    def init(self, title=None):
+        """Initialize figure without plotting, showing or saving.
 
         :param title: If set to a string, use it as plot title.
 
         """
-        assert self.plot_init_flag == False, "Plot initialized multiple times!"
+        assert self.init_flag == False, "Plot initialized multiple times!"
         assert self.nrows == 2, "Bad nrows value"
         assert self.ncols == 1 or self.ncols == 2, "Bad ncols value"
         # Create the plot layout.
@@ -177,24 +236,18 @@ class SignalQuadPlot():
             self.fig, (self.ax_ampl_time, self.ax_ampl_freq) = plt.subplots(nrows=self.nrows, ncols=self.ncols, sharex=sharex)
         elif self.ncols == 2:
             self.fig, ((self.ax_ampl_time, self.ax_phase_time), (self.ax_ampl_freq, self.ax_phase_freq)) = plt.subplots(nrows=self.nrows, ncols=self.ncols, sharex=sharex)
-        # Generate a time vector if shared x-axis is required.
-        if self.sync is True:
-            self.t = np.linspace(0, self.duration, len(self.sig))
-            assert len(self.t) == len(self.sig), "Bad length matching between time vector and signal!"
-            # NOTE: For plt.specgram():
-            # - If Fs is not set, it will generates an x-axis of "len(self.sig) / 2".
-            # - If Fs is set, it will generates an x-axis of "duration * sampling rate".
         # Initialize the labels.
-        self.__plot_init_labels()
-        # Proceed to plots.
-        self.__plot_amp()
-        if self.ncols == 2:
-            self.__plot_phase()
+        if self.sync is True:
+            self.xlabel = "Time [s]"
+        else:
+            self.xlabel = "Sample [#]" if LATEX_FONT_ENABLED is False else "Sample [\\#]"
         # Add the title if needed.
         if title is not None and title != "":
             self.fig.suptitle(title)
+        # Enable tight_layout for larger plots.
+        self.fig.set_tight_layout(True)
         # Set the initialized flag.
-        self.plot_init_flag = True
+        self.init_flag = True
     
     def plot(self, block=True, save=None, title=None, show=True):
         """Plot the different components of a signal.
@@ -210,17 +263,24 @@ class SignalQuadPlot():
         
         """
         # Initialize the plot if needed.
-        if self.plot_init_flag is False:
-            self.plot_init(title=title)
-        # Enable tight_layout for larger plots.
-        self.fig.set_tight_layout(True)
-        # Show it and/or save it.
-        if save is not None and save != "":
-            figure = plt.gcf()
-            figure.set_size_inches(32, 18)
-            plt.savefig(save, bbox_inches='tight', dpi=300)
-        if show is True:
-            plt.show(block=block)
+        if self.init_flag is False:
+            self.init(title=title)
+        # If no function for getting data is provided, only plot/save once.
+        if self.sigfunc is None:
+            self.__animate__(0)
+            # Show it and/or save it.
+            if save is not None and save != "":
+                figure = plt.gcf()
+                figure.set_size_inches(32, 18)
+                plt.savefig(save, bbox_inches='tight', dpi=300)
+            if show is True:
+                plt.show(block=block)
+        # If function for getting data is provided, enter lvie update.
+        else:
+            # NOTE: "interval" seems to be limited by the time Matplotlib takes
+            # to render the data.
+            anim = animation.FuncAnimation(self.fig, self.__animate__, interval=500, cache_frame_data=False)
+            plt.show()
         plt.clf()
  
 class PlotShrink():

@@ -5,6 +5,7 @@
 # Standard import.
 import time
 from os import path
+from functools import partial
 
 # Compatibility import.
 try:
@@ -16,7 +17,6 @@ except ModuleNotFoundError as e:
 # External import.
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy import signal
 import click
 
 # Internal import.
@@ -68,15 +68,20 @@ def discover():
 @click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 @click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
-def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag):
+@click.option("--live/--no-live", "live_flag", default=False, help="Live display instead of one shot recording.")
+def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag, live_flag):
     """Record a signal.
 
     It will automatically use the first found radio. FREQ is the center
     frequency (e.g., 2.4e9). SAMP is the sampling rate (e.g., 4e6).
 
     """
-    sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain, save_sig=save_sig, save_plot=save_plot, plot_flag=plot_flag, cut_flag=cut_flag)
-    helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
+    if live_flag is False:
+        sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain)
+        helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
+    elif live_flag is True:
+        plotters.SignalQuadPlot(None, sigfunc=partial(helpers.record, freq=freq, samp=samp, duration=duration, gain=gain), sr=samp, fc=freq).plot(save=False, title=save_sig)
+        
 
 @cli.command()
 @click.argument("file", type=click.Path())
@@ -128,11 +133,18 @@ def server_stop():
     core.SoapyClient().stop()
     
 @cli.command()
-@click.option("--save", default="", help="If set to a file path, save the recorded signal as .npy file.")
+@click.option("--save-sig", default="", help="If set to a file path, save the recorded signal as .npy file.")
+@click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
-def client(save, plot_flag):
-    """Record a signal from a radio server."""
-    helpers.client(save, plot_flag)
+@click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
+@click.option("--live/--no-live", "live_flag", default=False, help="Live display instead of one shot recording.")
+def client(save_sig, save_plot, plot_flag, cut_flag, live_flag):
+    """Record a signal from a radio server."""    
+    if live_flag is False:
+        sig = helpers.client()
+        helpers.plot(sig, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
+    elif live_flag is True:
+        plotters.SignalQuadPlot(None, sigfunc=partial(helpers.client)).plot(save=False, title=save_sig)
     
 if __name__ == "__main__":
     cli()
