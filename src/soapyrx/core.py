@@ -14,6 +14,7 @@ from os import path
 import errno
 from threading import Thread
 import sys
+import signal
 
 # External import.
 import numpy as np
@@ -41,11 +42,17 @@ POLLING_INTERVAL = 1e-6
 # * Classes
 
 class SoapyServer():
+    # If set to True, the server main loop will stop. [bool]
+    should_stop = False
+    
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         self.close()
+
+    def __sig_handler__(self, signum, frame):
+        self.stop()
 
     def __init__(self):
         l.LOGGER.debug("[{}] Initialization...".format(type(self).__name__))
@@ -55,6 +62,8 @@ class SoapyServer():
         # NOTE: The IDXs must be unique, as the IDX is used as filename
         # identifier and as SoapySDR's result index.
         self.registered_idx = []
+        signal.signal(signal.SIGINT, self.__sig_handler__)
+        signal.signal(signal.SIGTERM, self.__sig_handler__)
 
     def __ack__(self, cmd):
         """Acknoledge the end of the command CMD."""
@@ -209,7 +218,7 @@ class SoapyServer():
         with open(PATH_FIFO_C2S_CMD, "r") as fifo:
             l.LOGGER.debug("[{}] Opened FIFO (r): {}".format(type(self).__name__, PATH_FIFO_C2S_CMD))
             # Infinitely listen for commands and execute the radio commands accordingly.
-            while True:
+            while self.should_stop is False:
                 cmd = fifo.read()
                 if len(cmd) > 0:
                     l.LOGGER.debug("[{}] FIFO -> {}".format(type(self).__name__, cmd))
@@ -218,10 +227,13 @@ class SoapyServer():
                         cmds[cmd]()
                         self.__ack__(cmd)
                     elif cmd == "stop":
-                        l.LOGGER.info("[{}] Server shutdown!".format(type(self).__name__))
                         break
                 # Smart polling.
                 sleep(POLLING_INTERVAL)
+            l.LOGGER.info("[{}] Server shutdown!".format(type(self).__name__))
+
+    def stop(self):
+        self.should_stop = True
 
     def get_nb(self):
         """Get the number of currently registed SDRs."""
