@@ -14,6 +14,10 @@ of signals (/e.g./, conversion, alignment, normalization).
   - Display basic signal visualization (amplitude, phase rotation, time-domain, frequency-domain).
   - Perform single-signal operations (/e.g./, interactive cutting).
   - Use complex numbers (I/Q) for storage (=numpy.complex64=).
+  - Live display (buffered recording, like an oscilloscope, not like a spectrum analyzer)/
+- Supported devices ::
+  - [[https://greatscottgadgets.com/hackrf/one/][HackRF]]
+  - [[https://www.ettus.com/product-categories/usrp-bus-series/][USRP]]
 
 * Installation
 
