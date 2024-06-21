@@ -7,13 +7,6 @@ import time
 from os import path
 from functools import partial
 
-# Compatibility import.
-try:
-    import tomllib
-# NOTE: For Python <= 3.11:
-except ModuleNotFoundError as e:
-    import tomli as tomllib
-
 # External import.
 import numpy as np
 from matplotlib import pyplot as plt
@@ -24,31 +17,28 @@ from soapyrx import logger as l
 from soapyrx import helpers
 from soapyrx import plotters
 from soapyrx import core
-
-# * Global variables
-
-CONFIG = None
+from soapyrx import config
 
 # * Command-line interface
 
 @click.group(context_settings={'show_default': True})
-@click.option("--config", type=click.Path(), default="", help="Path of a TOML configuration file.")
+@click.option("--config", "config_path", type=click.Path(), default="", help="Path of a TOML configuration file.")
 @click.option("--log/--no-log", default=True, help="Enable or disable logging.")
 @click.option("--loglevel", default="INFO", help="Set the logging level.")
-def cli(config, log, loglevel):
-    """Signal recording tool.
-
-    CONFIG is the configuation file.
-
-    """
-    global CONFIG
+def cli(config_path, log, loglevel):
+    """Signal recording tool."""
     l.configure(log, loglevel)
-    # Load the configuration file.
-    if config != "" and path.exists(config):
-        with open(config, "rb") as f:
-            CONFIG = tomllib.load(f)
-    elif config != "":
-        l.LOGGER.error("Configuration file not found: {}".format(path.abspath(config)))
+    if config_path != "":
+        l.LOGGER.info("Configuration file loaded: {}".format(path.abspath(config_path)))
+        if path.exists(config_path):
+            try:
+                config.AppConf(config_path)
+            except Exception as e:
+                l.LOGGER.error("Configuration file cannot be loaded: {}".format(path.abspath(config_path)))
+                raise e
+        else:
+            l.LOGGER.warn("Configuration file does not exists: {}".format(path.abspath(config_path)))
+    import ipdb; ipdb.set_trace()
 
 @cli.command()
 def discover():
