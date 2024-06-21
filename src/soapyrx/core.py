@@ -287,6 +287,21 @@ class SoapyRadio():
 
     # * Static functions.
 
+    @staticmethod
+    def _rx_buff_len_exp_auto(nsamples):
+        """Compute an automatic RX buffer length.
+
+        :param nsamples: The number of samples that the SDR is configured to
+        record.
+
+        :return: The according rx_buff_len_exp value.
+
+        """
+        candidate = int(np.log2(nsamples)) + 1
+        candidate = min(candidate, SoapyRadio.RX_BUFF_LEN_EXP_UB)
+        candidate = max(candidate, SoapyRadio.RX_BUFF_LEN_EXP_LB)
+        return candidate
+
     def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, gain = 0):
         l.LOGGER.debug("[{}:{}] Initialization: fs={} freq={} enabled={} duration={} gain={}".format(type(self).__name__, idx, fs, freq, enabled, duration, gain))
         assert gain >= 0, "Gain should be positive!"
@@ -321,21 +336,6 @@ class SoapyRadio():
             # Initialize the RX buffer with a sufficient size to hold the
             # default duration.
             self._rx_buff_init(self._rx_buff_len_exp_auto(self.duration * self.fs))
-
-    @staticmethod
-    def _rx_buff_len_exp_auto(nsamples):
-        """Compute an automatic RX buffer length.
-
-        :param nsamples: The number of samples that the SDR is configured to
-        record.
-
-        :return: The according rx_buff_len_exp value.
-
-        """
-        candidate = int(np.log2(nsamples)) + 1
-        candidate = min(candidate, SoapyRadio.RX_BUFF_LEN_EXP_UB)
-        candidate = max(candidate, SoapyRadio.RX_BUFF_LEN_EXP_LB)
-        return candidate
 
     def _rx_buff_init(self, rx_buff_len_exp = RX_BUFF_LEN_EXP):
         """Initialize the RX buffer.
