@@ -274,6 +274,8 @@ class SoapyRadio():
 
     # * Variables.
 
+    # RX SoapySDR stream.
+    rx_stream = None
     # RX temporary buffer allocated at runtime.
     rx_buff = None
 
