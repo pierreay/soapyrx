@@ -1,0 +1,3 @@
+[SDRPLAY]
+gain_ifgr = -1 # IF Gain Reduction [-1 = Disabled] [dB]
+gain_rfgr = -1 # RF Gain Reduction [-1 = Disabled] [dB]

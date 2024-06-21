@@ -15,6 +15,7 @@ import errno
 from threading import Thread
 import sys
 import signal
+from enum import Enum
 
 # External import.
 import numpy as np
@@ -22,6 +23,7 @@ import SoapySDR
 
 # Internal import.
 from soapyrx import logger as l
+from soapyrx import config
 
 # * Global variables
 
@@ -38,6 +40,11 @@ PATH_FIFO_S2C_DATA = "/tmp/s2c-data.fifo"
 # consume too much CPU (here, 5%) but small enough to not introduce noticeable
 # delay to the recording.
 POLLING_INTERVAL = 1e-6
+
+# * Enumerations
+
+# Models supported by SoapyRadio class.
+SoapyRadioModel = Enum('SoapyRadioModel', ['GENERIC', 'HACKRF', 'USRP', 'SDRPLAY'])
 
 # * Classes
 
@@ -274,6 +281,8 @@ class SoapyRadio():
 
     # * Variables.
 
+    # Model of current SDR [SoapyRadioModel]
+    model = None
     # AGC enable flag [bool].
     agc = None
     # Gain [dB].
@@ -334,8 +343,17 @@ class SoapyRadio():
                 raise Exception("SoapySDR didn't detected any device!")
             if idx > len(results):
                 raise Exception("SoapySDR didn't detected the requested radio index!")
-            # Initialize the radio with requested parameters.
+            # Find radio type.
             self.sdr = SoapySDR.Device(results[idx])
+            if "HackRF" in str(self.sdr):
+                self.model = SoapyRadioModel.HACKRF
+            elif "b200" in str(self.sdr):
+                self.model = SoapyRadioModel.USRP
+            elif "SDRplay" in str(self.sdr):
+                self.model = SoapyRadioModel.SDRPLAY
+            else:
+                self.model = SoapyRadioModel.GENERIC
+            # Initialize the radio with requested parameters.
             self.sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, fs)
             self.sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
             self.sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, "TX/RX")
@@ -364,9 +382,14 @@ class SoapyRadio():
             # Setup gain value.
             self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, gain)
             l.LOGGER.debug("gain={}".format(self.sdr.getGain(SoapySDR.SOAPY_SDR_RX, 0)))
-            # TODO: SDRPlay-specific:
-            # self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "IFGR", 44)
-            # self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "RFGR", 2)
+        # SDRPlay-specific:
+        if self.model == SoapyRadioModel.SDRPLAY and config.loaded() is True:
+            if config.get()[SoapyRadioModel.SDRPLAY.name]["gain_ifgr"] >= 0:
+                self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "IFGR", config.get()[SoapyRadioModel.SDRPLAY.name]["gain_ifgr"])
+                l.LOGGER.debug("gain_ifgr={}".format(self.sdr.getGain(SoapySDR.SOAPY_SDR_RX, 0, "IFGR")))
+            if config.get()[SoapyRadioModel.SDRPLAY.name]["gain_rfgr"] >= 0:
+                self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "RFGR", config.get()[SoapyRadioModel.SDRPLAY.name]["gain_rfgr"])
+                l.LOGGER.debug("gain_rfgr={}".format(self.sdr.getGain(SoapySDR.SOAPY_SDR_RX, 0, "RFGR")))
 
     def _rx_buff_init(self, rx_buff_len_exp = RX_BUFF_LEN_EXP):
         """Initialize the RX buffer.

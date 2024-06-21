@@ -39,9 +39,16 @@ class AppConf():
         self.path = path
         # Load the configuration file.
         with open(self.path, "rb") as f:
-            self.toml = tomllib.load(f)
+            try:
+                self.toml = tomllib.load(f)
+            except Exception as e:
+                l.LOGGER.error("Bad TOML configuration file format!")
+                raise e
 
 # * Functions
+
+def loaded():
+    return CONFIG is not None
 
 def get():
     assert CONFIG is not None, "Configuration has not been loaded!"

@@ -92,7 +92,7 @@ of signals (/e.g./, conversion, alignment, normalization).
 
 * Usage
 
-TODO: Usage demonstration.
+TODO: Usage demonstration into [[file:examples]].
 
 * Files
 

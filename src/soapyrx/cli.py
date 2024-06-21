@@ -38,7 +38,6 @@ def cli(config_path, log, loglevel):
                 raise e
         else:
             l.LOGGER.warn("Configuration file does not exists: {}".format(path.abspath(config_path)))
-    import ipdb; ipdb.set_trace()
 
 @cli.command()
 def discover():
