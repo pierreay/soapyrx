@@ -63,13 +63,14 @@ def discover():
 @click.argument("freq", type=float)
 @click.argument("samp", type=float)
 @click.option("--duration", type=float, default=1, help="Duration of the recording [s].")
-@click.option("--gain", type=int, default=0, help="Gain for the SDR [dB].")
+@click.option("--agc/--no-agc", default=True, help="Enable or disable the automatic gain control (AGC).")
+@click.option("--gain", type=int, default=None, help="Gain for the SDR [dB].")
 @click.option("--save-sig", default="", help="If set to a file path, save the recorded signal as .npy file.")
 @click.option("--save-plot", default="", help="If set to a file path, save the plot to this path.")
 @click.option("--plot/--no-plot", "plot_flag", default=True, help="Plot the recorded signal.")
 @click.option("--cut/--no-cut", "cut_flag", default=True, help="Cut the recorded signal.")
 @click.option("--live/--no-live", "live_flag", default=False, help="Live display instead of one shot recording.")
-def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag, live_flag):
+def record(freq, samp, duration, agc, gain, save_sig, save_plot, plot_flag, cut_flag, live_flag):
     """Record a signal.
 
     It will automatically use the first found radio. FREQ is the center
@@ -77,10 +78,10 @@ def record(freq, samp, duration, gain, save_sig, save_plot, plot_flag, cut_flag,
 
     """
     if live_flag is False:
-        sig = helpers.record(freq=freq, samp=samp, duration=duration, gain=gain)
+        sig = helpers.record(freq=freq, samp=samp, duration=duration, agc=agc, gain=gain)
         helpers.plot(sig, samp=samp, freq=freq, cut_flag=cut_flag, plot_flag=plot_flag, save_sig=save_sig, save_plot=save_plot, title=save_sig)
     elif live_flag is True:
-        plotters.SignalQuadPlot(None, sigfunc=partial(helpers.record, freq=freq, samp=samp, duration=duration, gain=gain), sr=samp, fc=freq).plot(save=False, title=save_sig)
+        plotters.SignalQuadPlot(None, sigfunc=partial(helpers.record, freq=freq, samp=samp, duration=duration, agc=agc, gain=gain), sr=samp, fc=freq).plot(save=False, title=save_sig)
         
 
 @cli.command()
@@ -108,8 +109,9 @@ def plot(file, cut_flag, save_sig, save_plot, freq, samp):
 @click.argument("freq", type=float)
 @click.argument("samp_rate", type=float)
 @click.option("--duration", type=float, default=1, help="Duration of the recording [s].")
-@click.option("--gain", type=int, default=0, help="Gain for the SDR [dB].")
-def server_start(idx, freq, samp_rate, duration, gain):
+@click.option("--agc/--no-agc", default=True, help="Enable or disable the automatic gain control (AGC).")
+@click.option("--gain", type=int, default=None, help="Gain for the SDR [dB].")
+def server_start(idx, freq, samp_rate, duration, agc, gain):
     """Start a radio server.
 
     IDX is the radio index (see discover()). FREQ is the center frequency
@@ -120,7 +122,7 @@ def server_start(idx, freq, samp_rate, duration, gain):
     automatically, hence, use Bash to launch it in the background.
 
     """
-    helpers.server_start(idx, freq, samp_rate, duration, gain)
+    helpers.server_start(idx, freq, samp_rate, duration, agc, gain)
 
 @cli.command()
 def server_stop():

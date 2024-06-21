@@ -32,7 +32,7 @@ def discover():
     if not results:
         l.LOGGER.error("No detected SDR!"); exit(1)
 
-def record(freq, samp, duration, gain):
+def record(freq, samp, duration, agc, gain):
     """Helper for recording functions.
 
     Return the recorded signal.
@@ -40,7 +40,7 @@ def record(freq, samp, duration, gain):
     """
     # Radio block.
     try:
-        with core.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, gain=gain) as rad:
+        with core.SoapyRadio(fs=samp, freq=freq, idx=0, duration=duration, agc=agc, gain=gain) as rad:
             # Initialize the driver.
             rad.open()
             # Perform the recording.
@@ -76,11 +76,11 @@ def plot(sig, samp=None, freq=None, cut_flag=False, plot_flag=True, save_sig="",
         l.LOGGER.critical("Error during signal processing!")
         raise e
 
-def server_start(idx, freq, samp_rate, duration, gain):
+def server_start(idx, freq, samp_rate, duration, agc, gain):
     """Helper for starting a server."""
     # Initialize the radio individually.
     try:
-        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, gain=gain)
+        rad = core.SoapyRadio(fs=samp_rate, freq=freq, idx=idx, duration=duration, agc=agc, gain=gain)
     except Exception as e:
         l.LOGGER.critical("Error during radio initialization!")
         raise e

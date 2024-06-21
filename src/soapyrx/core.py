@@ -274,6 +274,10 @@ class SoapyRadio():
 
     # * Variables.
 
+    # AGC enable flag [bool].
+    agc = None
+    # Gain [dB].
+    gain = None
     # RX SoapySDR stream.
     rx_stream = None
     # RX temporary buffer allocated at runtime.
@@ -304,13 +308,14 @@ class SoapyRadio():
         candidate = max(candidate, SoapyRadio.RX_BUFF_LEN_EXP_LB)
         return candidate
 
-    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, gain = 0):
-        l.LOGGER.debug("[{}:{}] Initialization: fs={} freq={} enabled={} duration={} gain={}".format(type(self).__name__, idx, fs, freq, enabled, duration, gain))
-        assert gain >= 0, "Gain should be positive!"
+    def __init__(self, fs, freq, idx = 0, enabled = True, duration = 1, agc = True, gain = None):
+        l.LOGGER.debug("[{}:{}] Initialization: fs={} freq={} enabled={} duration={}".format(type(self).__name__, idx, fs, freq, enabled, duration))
         # NOTE: Automatically convert floats to integers (allows using scentific notation, e.g. e6 or e9).
         self.fs = int(fs)
         self.freq = int(freq)
-        self.gain = int(gain)
+        self.agc = agc
+        if gain is not None:
+            self.gain = int(gain)
         self.idx = idx
         self.enabled = enabled
         # Default duration if nothing is specified during self.record().
@@ -334,7 +339,7 @@ class SoapyRadio():
             self.sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, fs)
             self.sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
             self.sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, "TX/RX")
-            self._setup_gain(agc=True, gain=gain)
+            self._setup_gain(agc=agc, gain=gain)
             # Initialize the RX buffer with a sufficient size to hold the
             # default duration.
             self._rx_buff_init(self._rx_buff_len_exp_auto(self.duration * self.fs))
@@ -350,6 +355,8 @@ class SoapyRadio():
         :param gain: Integer setting absolute gain vluae [db].
 
         """
+        assert agc == True or agc == False, "AGC should be enabled or disabled!"
+        assert gain is None or gain >= 0, "Gain should be positive!"
         # Setup automatic gain control (AGC).
         self.sdr.setGainMode(SoapySDR.SOAPY_SDR_RX, 0, agc)
         l.LOGGER.debug("gainMode={}".format(self.sdr.getGainMode(SoapySDR.SOAPY_SDR_RX, 0)))
