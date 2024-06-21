@@ -18,15 +18,76 @@ of signals (/e.g./, conversion, alignment, normalization).
 - Supported devices ::
   - [[https://greatscottgadgets.com/hackrf/one/][HackRF]]
   - [[https://www.ettus.com/product-categories/usrp-bus-series/][USRP]]
+  - [[https://www.sdrplay.com/][SDRPlay]]
 
 * Installation
 
-1. Install [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR]] using distribution packages or sources.
+1. Install [[https://github.com/pothosware/SoapySDR/wiki][SoapySDR]] and the module corresponding to the desired SDR using
+   packages (refer to your distribution) or sources (refer to [[id:e1a4eddd-f7a7-43ea-9bd9-490b81dada53][Installation of
+   SoapySDR from sources]])
 
 2. Clone SoapyRX repository and install it using using [[https://pypi.org/project/pip/][Pip]]:
    #+begin_src bash :eval never
    git clone https://github.com/pierreay/soapyrx.git
    cd soapyrx && pip install --user .
+   #+end_src
+
+* Installation of SoapySDR from sources
+:PROPERTIES:
+:ID:       e1a4eddd-f7a7-43ea-9bd9-490b81dada53
+:END:
+
+1. Install the required dependencies using your distribution package manager:
+   - =cmake=
+   - =g++=
+   - =python3=
+   - =numpy=
+   - =dbg=
+   - =swig=
+   - =boost=
+   - =boost-thread=
+
+2. Get the source code and build:
+   
+   #+begin_src bash :eval never
+   cd /tmp && git clone https://github.com/pothosware/SoapySDR.git
+   mkdir SoapySDR/build build && cd SoapySDR/build
+   cmake .. && make -j4
+   #+end_src
+
+3. Install and test if SoapySDR is installed correctly:
+   
+   #+begin_src bash :eval never
+   sudo make install && sudo ldconfig
+   SoapySDRUtil --info
+   #+end_src
+
+4. We support the following modules:
+   - [[https://github.com/pothosware/SoapyHackRF.git][SoapyHackRF]]
+   - [[https://github.com/pothosware/SoapyUHD.git][SoapyUHD]]
+   - [[https://github.com/pothosware/SoapySDRPlay3][SoapySDRPlay3]]
+
+5. Select the module according to your SDR and ensure that the SDR driver is
+   correctly installed on your system, independently of SoapySDR.
+
+6. Then, get the source code and build, replacing =$MODULE_URL= and
+   =$MODULE_NAME= accordingly:
+   
+   #+begin_src bash :eval never
+   cd /tmp && git clone $MODULE_URL
+   mkdir $MODULE_NAME/build && cd $MODULE_NAME/build
+   cmake .. && make
+   #+end_src
+
+7. Install and test if SoapySDR is able to detect the USRP, replacing
+   =$MODULE_DRIVER= by:
+   - =hackrf= for SoapyHackRF.
+   - =uhd= for SoapyUHD.
+   - =sdrplay= for SoapySDRPlay3.
+   
+   #+begin_src bash :eval never
+   sudo make install
+   SoapySDRUtil --probe="driver=$MODULE_DRIVER"
    #+end_src
 
 * Usage
