@@ -333,11 +333,33 @@ class SoapyRadio():
             self.sdr = SoapySDR.Device(results[idx])
             self.sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, fs)
             self.sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
-            self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, gain)
             self.sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, "TX/RX")
+            self._setup_gain(agc=True, gain=gain)
             # Initialize the RX buffer with a sufficient size to hold the
             # default duration.
             self._rx_buff_init(self._rx_buff_len_exp_auto(self.duration * self.fs))
+
+    def _setup_gain(self, agc = True, gain = None):
+        """Setup gain settings (AGC and absolute value).
+
+        By default, enable the automatic gain control (AGC) and do not setup an
+        absolute gain value. Specific gain setup (multiple amplifier) can be
+        configured through the configuration file.
+
+        :param agc: Boolean enabling or disable the AGC.
+        :param gain: Integer setting absolute gain vluae [db].
+
+        """
+        # Setup automatic gain control (AGC).
+        self.sdr.setGainMode(SoapySDR.SOAPY_SDR_RX, 0, agc)
+        l.LOGGER.debug("gainMode={}".format(self.sdr.getGainMode(SoapySDR.SOAPY_SDR_RX, 0)))
+        if gain is not None:
+            # Setup gain value.
+            self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, gain)
+            l.LOGGER.debug("gain={}".format(self.sdr.getGain(SoapySDR.SOAPY_SDR_RX, 0)))
+            # TODO: SDRPlay-specific:
+            # self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "IFGR", 44)
+            # self.sdr.setGain(SoapySDR.SOAPY_SDR_RX, 0, "RFGR", 2)
 
     def _rx_buff_init(self, rx_buff_len_exp = RX_BUFF_LEN_EXP):
         """Initialize the RX buffer.
