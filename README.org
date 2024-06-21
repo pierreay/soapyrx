@@ -97,3 +97,10 @@ TODO: Usage demonstration.
 * Files
 
 TODO: Link to main files.
+
+* Contribution
+
+*Desired features*
+
+- Dynamic changes of radio parameters :: /E.g./, center frequency or sampling
+  rate. Can be implemented using plots sliders?
