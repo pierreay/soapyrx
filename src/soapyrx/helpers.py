@@ -26,6 +26,8 @@ def discover():
         # Query device info.
         l.LOGGER.info("Antennas: {}".format(sdr.listAntennas(SoapySDR.SOAPY_SDR_RX, 0)))
         l.LOGGER.info("Gains: {}".format(sdr.listGains(SoapySDR.SOAPY_SDR_RX, 0)))
+        for gainType in sdr.listGains(SoapySDR.SOAPY_SDR_RX, 0):
+            l.LOGGER.info("Gain range [{}]: {}".format(gainType, sdr.getGainRange(SoapySDR.SOAPY_SDR_RX, 0, gainType)))
         freqRanges = sdr.getFrequencyRange(SoapySDR.SOAPY_SDR_RX, 0)
         for freqRange in freqRanges:
             l.LOGGER.info("Frenquency range: {}".format(freqRange))
