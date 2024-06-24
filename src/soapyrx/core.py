@@ -442,7 +442,9 @@ class SoapyRadio():
             # From SoapyUHD/SoapyUHDDevice.cpp/getNativeStreamFormat():
             # UHD and the hardware use "CS16" format in the underlying transport layer.
             self.rx_stream = self.sdr.setupStream(SoapySDR.SOAPY_SDR_RX, SoapySDR.SOAPY_SDR_CF32)
-            self.sdr.activateStream(self.rx_stream)
+            ret = self.sdr.activateStream(self.rx_stream)
+            if ret != 0:
+                raise Exception("Driver error, cannot activate SoapySDR stream: {}".format(ret))
             # Initialize for first recordings.
             self.reinit()
 
