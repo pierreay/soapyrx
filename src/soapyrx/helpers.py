@@ -137,5 +137,5 @@ def phase_rot(trace):
     elif trace.ndim == 2:
         trace_rot = np.empty_like(trace, dtype=dtype_out)
         for ti, tv in enumerate(trace):
-            trace_rot[ti] = get_phase_rot(tv)
+            trace_rot[ti] = phase_rot(tv)
         return trace_rot
