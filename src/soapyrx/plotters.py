@@ -16,6 +16,7 @@ from scipy import signal
 
 # Internal import.
 from soapyrx import helpers
+from soapyrx import config
 
 # * Global configuration
 
@@ -126,8 +127,15 @@ class SignalQuadPlot():
         """Plot the amplitude of the signal in time and frequency domains in a vertical way."""
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
+        # Apply a pre-configured filter if enabled.
+        sig = helpers.LHPFilter(config.get()["PLOTTERS"]["amp_filter_type"],
+                                config.get()["PLOTTERS"]["amp_filter_cutoff"],
+                               order=config.get()["PLOTTERS"]["amp_filter_order"],
+                               enabled=config.get()["PLOTTERS"]["amp_filter_en"]).apply(
+                                   self.sigdata, self.sr, force_dtype=True
+                               )
         # Compute the amplitude.
-        sig = np.abs(self.sigdata)
+        sig = np.abs(sig)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_ampl_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_ampl_time, sig), dtype=sig.dtype)
@@ -148,8 +156,15 @@ class SignalQuadPlot():
         """Plot the phase of the signal in time and frequency domains in a vertical way."""
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
+        # Apply a pre-configured filter if enabled.
+        sig = helpers.LHPFilter(config.get()["PLOTTERS"]["phr_filter_type"],
+                                config.get()["PLOTTERS"]["phr_filter_cutoff"],
+                                order=config.get()["PLOTTERS"]["phr_filter_order"],
+                                enabled=config.get()["PLOTTERS"]["phr_filter_en"]).apply(
+                                   self.sigdata, self.sr, force_dtype=True
+                               )
         # Compute phase rotation:
-        sig = helpers.phase_rot(self.sigdata)
+        sig = helpers.phase_rot(sig)
         # Filter the signal for better visualization if requested.
         if self.sos_filter_phase_time is not None:
             sig_filt = np.array(signal.sosfilt(self.sos_filter_phase_time, sig), dtype=sig.dtype)

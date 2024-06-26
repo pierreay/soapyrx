@@ -113,7 +113,52 @@ def client():
     # Return the radio capture.
     return sig
 
-# * Functions for computations
+# * Functions for computations (currently, DSP)
+
+from scipy import signal
+class LHPFilter():
+    """Low/High-pass digital Butterworth FIR filter."""
+
+    # Filter type ["low" | "high"]
+    type = None
+    # Cut-off frequnecy [Hz].
+    cutoff = None
+    # Order.
+    order = None
+    # Toggle switch.
+    enabled = None
+    
+    def __init__(self, type, cutoff, order=1, enabled=True):
+        """Configure a filter."""
+        # Input check.
+        assert type in ["low", "high"], "Bad filter type!"
+        # Get parameters.
+        self.type = type
+        self.cutoff = cutoff
+        self.order = order
+        self.enabled = enabled
+
+    def apply(self, sigin, fs, force_dtype=False):
+        """Apply the configured filter to a signal.
+
+        :param sigin: Signal to filter, may be real-valued (e.g., float) or
+        complex-valued (filter applied on real and imag independantly).
+
+        :param fs: Sampling rate of the signal.
+
+        :returns: The filtered signal.
+
+        """
+        # Return input signal if disabled.
+        if self.enabled is False:
+            return sigin
+        # Filter the signal.
+        sigout = signal.sosfilt(signal.butter(self.order, self.cutoff, self.type, fs=fs, output="sos"), sigin)
+        # Convert back to orignal dtype if requested, otherwise, return as it.
+        if force_dtype is True:
+            return np.array(sigout, dtype=sigin.dtype)
+        else:
+            return sigout
 
 def phase_rot(trace):
     """Get the phase rotation of one or multiple traces."""

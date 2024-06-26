@@ -309,7 +309,7 @@ class SoapyRadio():
         :param nsamples: The number of samples that the SDR is configured to
         record.
 
-        :return: The according rx_buff_len_exp value.
+        :returns: The according rx_buff_len_exp value.
 
         """
         candidate = int(np.log2(nsamples)) + 1
