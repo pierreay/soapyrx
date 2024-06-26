@@ -17,6 +17,10 @@ from scipy import signal
 # Internal import.
 from soapyrx import helpers
 
+# * Global configuration
+
+plt.style.use('bmh')
+
 # * Global variables
 
 NFFT = 256
