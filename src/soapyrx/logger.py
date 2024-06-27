@@ -19,8 +19,8 @@ HANDLER_DBG = None
 # Default logging level.
 LEVEL_DEFAULT = "INFO"
 # Formatters depending on level.
-FORMAT_INF = "%(log_color)s%(levelname)s - %(message)s"
-FORMAT_DBG = "%(log_color)s[%(asctime)s] [%(process)d] [%(threadName)s] [%(module)s] %(levelname)s - %(message)s"
+FORMAT_INF = "%(log_color)s[%(levelname)s] %(message)s"
+FORMAT_DBG = "%(log_color)s[%(asctime)s] [%(process)d] [%(threadName)s] [%(module)s] [%(levelname)s] %(message)s"
 
 # * Functions
 
