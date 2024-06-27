@@ -16,6 +16,7 @@ from threading import Thread
 import sys
 import signal
 from enum import Enum
+from pathlib import Path
 
 # External import.
 import numpy as np
@@ -34,6 +35,9 @@ PATH_FIFO_C2S_DATA = "/tmp/c2s-data.fifo"
 # Server -> FIFO -> Client
 PATH_FIFO_S2C_CMD = "/tmp/s2c-cmd.fifo"
 PATH_FIFO_S2C_DATA = "/tmp/s2c-data.fifo"
+
+# Path of a flag indicating that server is ready to listen.
+PATH_FLAG_SERVER_RDY = "/tmp/s2c-ready.flag"
 
 # Polling interval for a while True loop , i.e. sleeping time, i.e. interval to
 # check whether a command is queued in the FIFO or not. High enough to not
@@ -117,6 +121,8 @@ class SoapyServer():
             os.remove(PATH_FIFO_C2S_DATA)
         if path.exists(PATH_FIFO_S2C_DATA):
             os.remove(PATH_FIFO_S2C_DATA)
+        if path.exists(PATH_FLAG_SERVER_RDY):
+            os.remove(PATH_FLAG_SERVER_RDY)
 
     def record_start(self):
         """Asynchronous version of record().
@@ -218,6 +224,9 @@ class SoapyServer():
 
         # Create the FIFO.
         __create_fifo()
+        # Create flag indicating server is ready.
+        if not path.exists(PATH_FLAG_SERVER_RDY):
+            Path(PATH_FLAG_SERVER_RDY).touch()
         # NOTE: Put logging before FIFO is opened before its wait for a client
         # to return.
         l.LOGGER.info("[{}] Server started!".format(type(self).__name__))
@@ -620,3 +629,7 @@ class SoapyClient():
 
     def stop(self):
         self.__cmd__("stop")
+
+    def wait(self):
+        while not path.exists(PATH_FLAG_SERVER_RDY):
+            sleep(POLLING_INTERVAL)

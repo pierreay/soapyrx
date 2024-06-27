@@ -122,6 +122,16 @@ def server_stop():
 
     """
     core.SoapyClient().stop()
+
+@cli.command()
+def server_wait():
+    """Wait a radio server to start-up.
+
+    This command is used to properly wait the exact time the radio server needs
+    to initialize itself and wait commands on the FIFO.
+
+    """
+    core.SoapyClient().wait()
     
 @cli.command()
 @click.option("--save-sig", default="", help="If set to a file path, save the recorded signal as .npy file.")
