@@ -128,12 +128,15 @@ class SignalQuadPlot():
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Apply a pre-configured filter if enabled.
-        sig = dsp.LHPFilter(config.get()["PLOTTERS"]["amp_filter_type"],
-                                config.get()["PLOTTERS"]["amp_filter_cutoff"],
-                               order=config.get()["PLOTTERS"]["amp_filter_order"],
-                               enabled=config.get()["PLOTTERS"]["amp_filter_en"]).apply(
-                                   self.sigdata, self.sr, force_dtype=True
-                               )
+        if config.loaded() is True:
+            sig = dsp.LHPFilter(config.get()["PLOTTERS"]["amp_filter_type"],
+                                    config.get()["PLOTTERS"]["amp_filter_cutoff"],
+                                   order=config.get()["PLOTTERS"]["amp_filter_order"],
+                                   enabled=config.get()["PLOTTERS"]["amp_filter_en"]).apply(
+                                       self.sigdata, self.sr, force_dtype=True
+                                   )
+        else:
+            sig = self.sigdata
         # Compute the amplitude.
         sig = np.abs(sig)
         # Filter the signal for better visualization if requested.
@@ -157,12 +160,15 @@ class SignalQuadPlot():
         # Check needed parameters have been initialized.
         assert self.xlabel is not None
         # Apply a pre-configured filter if enabled.
-        sig = dsp.LHPFilter(config.get()["PLOTTERS"]["phr_filter_type"],
-                                config.get()["PLOTTERS"]["phr_filter_cutoff"],
-                                order=config.get()["PLOTTERS"]["phr_filter_order"],
-                                enabled=config.get()["PLOTTERS"]["phr_filter_en"]).apply(
-                                   self.sigdata, self.sr, force_dtype=True
-                               )
+        if config.loaded() is True:
+            sig = dsp.LHPFilter(config.get()["PLOTTERS"]["phr_filter_type"],
+                                    config.get()["PLOTTERS"]["phr_filter_cutoff"],
+                                    order=config.get()["PLOTTERS"]["phr_filter_order"],
+                                    enabled=config.get()["PLOTTERS"]["phr_filter_en"]).apply(
+                                       self.sigdata, self.sr, force_dtype=True
+                                   )
+        else:
+            sig = self.sigdata
         # Compute phase rotation:
         sig = dsp.phase_rot(sig)
         # Filter the signal for better visualization if requested.
