@@ -17,8 +17,8 @@ dependencies = [
 
 # Scripts configuration.
 [project.scripts]
-# Will create a "soapyrx" Bash script targeting the "soapyrx" package, "mymod"
-# module, "main()" function.
+# Will create a "soapyrx" Bash script targeting the "soapyrx" package, "cli"
+# module, "cli()" function.
 soapyrx = "soapyrx.cli:cli"
 
 # Package layout.

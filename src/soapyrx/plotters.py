@@ -20,12 +20,11 @@ from soapyrx import config
 
 # * Global configuration
 
+# Use a standard bright Matplotlib style.
 plt.style.use('bmh')
 
-# * Global variables
-
+# Number of bins for the FFT.
 NFFT = 256
-USER_SELECT = None
 
 # Flag indicated that LaTeX fonts have been enabled.
 LATEX_FONT_ENABLED = False
