@@ -601,7 +601,7 @@ class SoapyClient():
 
     def record_start(self):
         self.__cmd__("record_start")
-        # NOTE: Don't need to wait because record_start is fast enough.
+        self.__wait__("record_start")
 
     def record_stop(self):
         self.__cmd__("record_stop")
