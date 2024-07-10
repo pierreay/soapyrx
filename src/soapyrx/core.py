@@ -367,7 +367,6 @@ class SoapyRadio():
                 raise Exception("SoapySDR didn't detected the requested radio index!")
             # Find radio type.
             self.sdr = SoapySDR.Device(results[idx])
-            import ipdb; ipdb.set_trace()
             if "RTLSDR" in str(self.sdr):
                 self.model = SoapyRadioModel.RTLSDR
             elif "HackRF" in str(self.sdr):
