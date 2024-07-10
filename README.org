@@ -16,6 +16,7 @@ of signals (/e.g./, conversion, alignment, normalization).
   - Use complex numbers (I/Q) for storage (=numpy.complex64=).
   - Live display (buffered recording, like an oscilloscope, not like a spectrum analyzer)/
 - Supported devices ::
+  - [[https://www.rtl-sdr.com/][RTL-SDR]]
   - [[https://greatscottgadgets.com/hackrf/one/][HackRF]]
   - [[https://www.ettus.com/product-categories/usrp-bus-series/][USRP]]
   - [[https://www.sdrplay.com/][SDRPlay]]
@@ -64,6 +65,7 @@ of signals (/e.g./, conversion, alignment, normalization).
    #+end_src
 
 4. We support the following modules:
+   - [[https://github.com/pothosware/SoapyRTLSDR][SoapyRTLSDR]]
    - [[https://github.com/pothosware/SoapyHackRF.git][SoapyHackRF]]
    - [[https://github.com/pothosware/SoapyUHD.git][SoapyUHD]]
    - [[https://github.com/pothosware/SoapySDRPlay3][SoapySDRPlay3]]
@@ -83,6 +85,7 @@ of signals (/e.g./, conversion, alignment, normalization).
 
 7. Install and test if SoapySDR is able to detect the USRP, replacing
    =$MODULE_DRIVER= by:
+   - =rtlsdr= for RTL-SDR.
    - =hackrf= for SoapyHackRF.
    - =uhd= for SoapyUHD.
    - =sdrplay= for SoapySDRPlay3.

@@ -48,7 +48,7 @@ POLLING_INTERVAL = 1e-6
 # * Enumerations
 
 # Models supported by SoapyRadio class.
-SoapyRadioModel = Enum('SoapyRadioModel', ['GENERIC', 'HACKRF', 'USRP', 'SDRPLAY', 'AIRSPY'])
+SoapyRadioModel = Enum('SoapyRadioModel', ['GENERIC', 'RTLSDR', 'HACKRF', 'USRP', 'SDRPLAY', 'AIRSPY'])
 
 # * Classes
 
@@ -367,7 +367,10 @@ class SoapyRadio():
                 raise Exception("SoapySDR didn't detected the requested radio index!")
             # Find radio type.
             self.sdr = SoapySDR.Device(results[idx])
-            if "HackRF" in str(self.sdr):
+            import ipdb; ipdb.set_trace()
+            if "RTLSDR" in str(self.sdr):
+                self.model = SoapyRadioModel.RTLSDR
+            elif "HackRF" in str(self.sdr):
                 self.model = SoapyRadioModel.HACKRF
             elif "b200" in str(self.sdr):
                 self.model = SoapyRadioModel.USRP
