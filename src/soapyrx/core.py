@@ -312,6 +312,19 @@ class SoapyRadio():
     # * Static functions.
 
     @staticmethod
+    def _is_valid_flag(flags):
+        """Check a readStream returned flags.
+
+        0b0 = read as requested by host.
+        
+        0b100 = read as possible due to SDR internal buffer size.
+        
+        0b100100 = read as requested by host.
+
+        """
+        return flags == 0 or flags == 0b100 or flags == 0b100100
+
+    @staticmethod
     def _rx_buff_len_exp_auto(nsamples):
         """Compute an automatic RX buffer length.
 
@@ -493,12 +506,11 @@ class SoapyRadio():
                 l.LOGGER.debug("[{}:{}] Read SoapySDR stream...".format(type(self).__name__, self.idx))
                 sr = self.sdr.readStream(self.rx_stream, [self.rx_buff], readStream_len, timeoutUs=int(1e7))
                 l.LOGGER.debug("[{}:{}] Read stream: ret:{} flags:{:b}".format(type(self).__name__, self.idx, sr.ret, sr.flags))
-                # Recording at requested size, e.g., using USRP.
-                if sr.ret == readStream_len and sr.flags == 1 << 2:
-                    self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:readStream_len]))
-                # Recording smaller than requested, e.g., using HackRF (smaller buffer).
-                elif sr.ret > 0 and sr.flags == 0:
+                # Check recording and save samples if successful.
+                if sr.ret > 0 and SoapyRadio._is_valid_flag(sr.flags):
                     self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:sr.ret]))
+                else:
+                    l.LOGGER.warning("[{}:{}] Recording failed!".format(type(self).__name__, self.idx))
             if log is True:
                 l.LOGGER.info("[{}:{}] Recording finished!".format(type(self).__name__, self.idx, duration))
         else:
