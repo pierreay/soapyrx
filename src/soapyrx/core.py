@@ -312,8 +312,12 @@ class SoapyRadio():
     # * Static functions.
 
     @staticmethod
-    def _is_valid_flag(flags):
-        """Check a readStream returned flags.
+    def _is_valid_readStream(status):
+        """Check a readStream return value.
+
+        During the check, may log out DEBUG, WARN or ERROR messages.
+
+        :returns: True if the readStream should be accepted, False otherwise.
 
         0b0 = read as requested by host.
         
@@ -322,7 +326,21 @@ class SoapyRadio():
         0b100100 = read as requested by host.
 
         """
-        return flags == 0 or flags == 0b100 or flags == 0b100100
+        # Check the flags constants.
+        # NOTE: For readStream flags, refer to SoapySDR/include/SoapySDR/Constants.h
+        if status.flags == 1 << 1:
+            l.LOGGER.warning("SoapySDR readStream flag: {}".format("END_BURST"))
+        if status.flags == 1 << 3:
+            l.LOGGER.warning("SoapySDR readStream flag: {}".format("END_ABRUPT"))
+        if status.flags == 1 << 5:
+            l.LOGGER.warning("SoapySDR readStream flag: {}".format("MORE_FRAGMENTS"))
+        # Check the returned error.
+        # NOTE: For readStream return, refer to SoapySDR/include/SoapySDR/Errors.h
+        if status.ret > 0:
+            return True
+        else:
+            l.LOGGER.error("SoapySDR readStream error: {}".format(SoapySDR.errToStr(status.ret)))
+            return False
 
     @staticmethod
     def _rx_buff_len_exp_auto(nsamples):
@@ -506,13 +524,11 @@ class SoapyRadio():
                 readStream_len = min(samples - len(self.rx_signal_candidate), rx_buff_len)
                 assert readStream_len <= len(self.rx_buff)
                 l.LOGGER.debug("[{}:{}] Read SoapySDR stream...".format(type(self).__name__, self.idx))
-                sr = self.sdr.readStream(self.rx_stream, [self.rx_buff], readStream_len, timeoutUs=int(1e7))
-                l.LOGGER.debug("[{}:{}] Read stream: ret:{} flags:{:b}".format(type(self).__name__, self.idx, sr.ret, sr.flags))
+                status = self.sdr.readStream(self.rx_stream, [self.rx_buff], readStream_len, timeoutUs=int(1e7))
                 # Check recording and save samples if successful.
-                if sr.ret > 0 and SoapyRadio._is_valid_flag(sr.flags):
-                    self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:sr.ret]))
-                else:
-                    l.LOGGER.warning("[{}:{}] Recording failed!".format(type(self).__name__, self.idx))
+                l.LOGGER.debug("[{}:{}] Read stream: ret:{} flags:{:b}".format(type(self).__name__, self.idx, status.ret, status.flags))
+                if SoapyRadio._is_valid_readStream(status):
+                    self.rx_signal_candidate = np.concatenate((self.rx_signal_candidate, self.rx_buff[:status.ret]))
             if log is True:
                 l.LOGGER.info("[{}:{}] Recording finished!".format(type(self).__name__, self.idx, duration))
         else:
