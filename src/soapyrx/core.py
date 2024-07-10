@@ -319,12 +319,6 @@ class SoapyRadio():
 
         :returns: True if the readStream should be accepted, False otherwise.
 
-        0b0 = read as requested by host.
-        
-        0b100 = read as possible due to SDR internal buffer size.
-        
-        0b100100 = read as requested by host.
-
         """
         # Check the flags constants.
         # NOTE: For readStream flags, refer to SoapySDR/include/SoapySDR/Constants.h
