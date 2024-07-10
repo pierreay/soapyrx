@@ -19,6 +19,7 @@ of signals (/e.g./, conversion, alignment, normalization).
   - [[https://greatscottgadgets.com/hackrf/one/][HackRF]]
   - [[https://www.ettus.com/product-categories/usrp-bus-series/][USRP]]
   - [[https://www.sdrplay.com/][SDRPlay]]
+  - [[https://airspy.com/][AirSpy]]
 
 * Installation
 
@@ -66,6 +67,7 @@ of signals (/e.g./, conversion, alignment, normalization).
    - [[https://github.com/pothosware/SoapyHackRF.git][SoapyHackRF]]
    - [[https://github.com/pothosware/SoapyUHD.git][SoapyUHD]]
    - [[https://github.com/pothosware/SoapySDRPlay3][SoapySDRPlay3]]
+   - [[https://github.com/pothosware/SoapyAirspy][SoapyAirspy]]
 
 5. Select the module according to your SDR and ensure that the SDR driver is
    correctly installed on your system, independently of SoapySDR.
@@ -84,6 +86,7 @@ of signals (/e.g./, conversion, alignment, normalization).
    - =hackrf= for SoapyHackRF.
    - =uhd= for SoapyUHD.
    - =sdrplay= for SoapySDRPlay3.
+   - =airspy= for AirSpy.
    
    #+begin_src bash :eval never
    sudo make install

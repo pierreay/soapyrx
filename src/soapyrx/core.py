@@ -48,7 +48,7 @@ POLLING_INTERVAL = 1e-6
 # * Enumerations
 
 # Models supported by SoapyRadio class.
-SoapyRadioModel = Enum('SoapyRadioModel', ['GENERIC', 'HACKRF', 'USRP', 'SDRPLAY'])
+SoapyRadioModel = Enum('SoapyRadioModel', ['GENERIC', 'HACKRF', 'USRP', 'SDRPLAY', 'AIRSPY'])
 
 # * Classes
 
@@ -360,6 +360,8 @@ class SoapyRadio():
                 self.model = SoapyRadioModel.USRP
             elif "SDRplay" in str(self.sdr):
                 self.model = SoapyRadioModel.SDRPLAY
+            elif "Airspy" in str(self.sdr):
+                self.model = SoapyRadioModel.AIRSPY
             else:
                 self.model = SoapyRadioModel.GENERIC
             # Initialize the radio with requested parameters.
