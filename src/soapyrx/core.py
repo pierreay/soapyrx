@@ -368,7 +368,7 @@ class SoapyRadio():
             self.sdr.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, fs)
             self.sdr.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, freq)
             self.sdr.setAntenna(SoapySDR.SOAPY_SDR_RX, 0, "TX/RX")
-            self._setup_gain(agc=agc, gain=gain)
+            self._setup_gain(agc=self.agc, gain=self.gain)
             # Initialize the RX buffer with a sufficient size to hold the
             # default duration.
             self._rx_buff_init(self._rx_buff_len_exp_auto(self.duration * self.fs))
