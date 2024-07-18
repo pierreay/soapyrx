@@ -29,6 +29,9 @@ NFFT = 256
 # Flag indicated that LaTeX fonts have been enabled.
 LATEX_FONT_ENABLED = False
 
+# Matplotlib prefered color map [viridis | inferno].
+COLOR_MAP = "inferno"
+
 # * Functions
 
 def enable_latex_fonts():
@@ -150,7 +153,7 @@ class SignalQuadPlot():
             self.ax_ampl_time.plot(sig_filt)
             self.ax_ampl_time.set_xlabel(self.xlabel)
             self.ax_ampl_freq.set_xlabel(self.xlabel)
-        self.ax_ampl_freq.specgram(self.sigdata, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
+        self.ax_ampl_freq.specgram(self.sigdata, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude", cmap=COLOR_MAP)
         self.ax_ampl_time.set_ylabel("Amplitude [ADC value]")
         self.ax_ampl_freq.set_ylabel("Frequency [Hz]")
 
@@ -182,7 +185,7 @@ class SignalQuadPlot():
             self.ax_phase_time.plot(sig_filt)
             self.ax_phase_time.set_xlabel(self.xlabel)
             self.ax_phase_freq.set_xlabel(self.xlabel)
-        self.ax_phase_freq.specgram(sig, NFFT=NFFT, Fs=self.sr, Fc=self.fc)
+        self.ax_phase_freq.specgram(sig, NFFT=NFFT, Fs=self.sr, Fc=self.fc, cmap=COLOR_MAP)
         self.ax_phase_time.set_ylabel("Phase rotation [Radian]")
         self.ax_phase_freq.set_ylabel("Frequency [Hz]")
 
@@ -361,7 +364,7 @@ class PlotShrink():
         self.axspec.clear()
         # Plot the signal using new lower bound.
         self.axampl.plot(np.abs(self.signal[self.lb:self.ub]))
-        self.axspec.specgram(self.signal[self.lb:self.ub], NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
+        self.axspec.specgram(self.signal[self.lb:self.ub], NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude", cmap=COLOR_MAP)
         # Redraw the figure.
         self.fig.canvas.draw()
 
@@ -386,7 +389,7 @@ class PlotShrink():
         self.axampl.plot(np.abs(self.signal))
         self.axampl.set_xlabel('Sample [#]')
         self.axampl.set_ylabel('Amplitude')
-        self.axspec.specgram(self.signal, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude")
+        self.axspec.specgram(self.signal, NFFT=NFFT, Fs=self.sr, Fc=self.fc, sides="twosided", mode="magnitude", cmap=COLOR_MAP)
         self.axspec.set_xlabel('Sample [#]')
         self.axspec.set_ylabel('Frequency [Hz]')
 
