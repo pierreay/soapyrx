@@ -96,13 +96,13 @@ of signals (/e.g./, conversion, alignment, normalization).
    SoapySDRUtil --probe="driver=$MODULE_DRIVER"
    #+end_src
 
-* Usage
+# * Usage
 
-TODO: Usage demonstration into [[file:examples]].
+# TODO: Usage demonstration into [[file:examples]].
 
-* Files
+# * Files
 
-TODO: Link to main files.
+# TODO: Link to main files.
 
 * Contribution
 
