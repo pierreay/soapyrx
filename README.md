@@ -23,11 +23,11 @@ It is not meant to process datasets of signals (*e.g.*, conversion, alignment, n
 
 **References**
 
-SoapyRX has been initially developed for the PhaseSCA project, see the main project repository at **[phase_data](https://github.com/pierreay/phase_data.git)**.
+SoapyRX can be used independently, but has been initially developed for the PhaseSCA project, see the main project repository at **[phase_data](https://github.com/pierreay/phase_data.git)**.
 
 # Installation
 
-1. Install [SoapySDR](https://github.com/pothosware/SoapySDR/wiki) and the module corresponding to the desired SDR using packages (refer to your distribution) or sources (refer to [Installation of SoapySDR from sources](#org4130826)).
+1. Install [SoapySDR](https://github.com/pothosware/SoapySDR/wiki) and the module corresponding to the desired SDR using packages (refer to your distribution) or sources (refer to [Installation of SoapySDR from sources](#installation-of-soapysdr-from-sources)).
 
 2.  Clone SoapyRX repository and install it using using [Pip](https://pypi.org/project/pip/):
 
