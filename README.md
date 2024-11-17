@@ -87,11 +87,3 @@ cmake .. && make
 sudo make install
 SoapySDRUtil --probe="driver=$MODULE_DRIVER"
 ```
-
-# Contribution
-
-**Desired features**
-
-- **Dynamic changes of radio parameters:** *E.g.*, center frequency or sampling rate. Can be implemented using plots sliders?
-- **Scanner mode:** If dynamic change of radio parameters is fast enough, consider adding a wide-band spectrum scanner using sweeping.
-

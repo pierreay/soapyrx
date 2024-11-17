@@ -1,0 +1,7 @@
+Desired features
+=======================================
+
+- Dynamic changes of radio parameters:
+    - For example, changing of center frequency or sampling rate. May be implemented using plots sliders?
+- Scanner mode:
+    - If dynamic change of radio parameters is fast enough (not likely if done in Python), consider adding a wide-band spectrum scanner using sweeping.
