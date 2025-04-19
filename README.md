@@ -23,7 +23,7 @@ It is not meant to process datasets of signals (*e.g.*, conversion, alignment, n
 
 **References**
 
-SoapyRX can be used independently, but has been initially developed for the PhaseSCA project, see the main project repository at **[phase_data](https://github.com/pierreay/phase_data.git)**.
+SoapyRX can be used independently, but has been initially developed for the PhaseSCA project, see the main project repository at **[phasesca](https://github.com/pierreay/phasesca.git)**.
 
 # Installation
 
