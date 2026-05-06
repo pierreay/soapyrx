@@ -7,6 +7,9 @@ Its output can later be used to create datasets of signals and perform pre-proce
 
 <center><img src="./doc/soapyrx.png" width=500></center>
 
+> [!NOTE]
+> SoapyRX is an independent tool, initially developed for the [PhaseSCA](https://github.com/pierreay/phasesca.git) research project about electromagnetic side channel.
+
 # Features
 
 - One-shot "**record-plot-cut-save**" cycle from the **command-line**
@@ -24,9 +27,6 @@ Its output can later be used to create datasets of signals and perform pre-proce
 - [USRP](https://www.ettus.com/product-categories/usrp-bus-series/)
 - [SDRPlay](https://www.sdrplay.com/)
 - [AirSpy](https://airspy.com/)
-
-> [!NOTE]
-> SoapyRX is an independent tool, initially developed for the [PhaseSCA](https://github.com/pierreay/phasesca.git) research project about electromagnetic side channel.
 
 # Installation
 
